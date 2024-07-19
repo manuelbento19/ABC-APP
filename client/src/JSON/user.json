@@ -1,0 +1,11 @@
+{
+    "message": "Login bem-sucedido!",
+    "userData": {
+        "id": 1,
+        "gestorName": "João Silva",
+        "email": "joao@example.com",
+        "telefone": "+351 123 456 789",
+        "nameCompany": "ABC Company",
+        "description": "Consultoria em tecnologia"
+    }
+}

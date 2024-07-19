@@ -1,0 +1,27 @@
+.logo-link {
+    display: inline-block;
+    position: relative;
+  }
+  
+  .animate-rotate {
+    animation: rotateAnimation 5s infinite; /* 5s é a duração da animação */
+    transform-origin: center;
+  }
+  
+  .animate-rotate-reverse {
+    animation: rotateAnimationReverse 5s infinite; /* 5s é a duração da animação */
+    transform-origin: center;
+  }
+  
+  @keyframes rotateAnimationReverse {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-20deg);
+    }
+    100% {
+      transform: rotate(20deg);
+    }
+  }
+  

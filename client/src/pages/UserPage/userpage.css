@@ -1,0 +1,232 @@
+.home-page-cards {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Added to ensure wrapping on small screens */
+}
+
+.home-page-cards .home-page-col-one,
+.home-page-cards .home-page-col-three {
+    display: none; /* Hide by default */
+}
+
+.home-page-cards .home-page-col-two {
+    width: 100%; /* Full width by default */
+    background-color: #0F172A;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+}
+
+/* Show columns on larger screens */
+@media (min-width: 1024px) {
+    .home-page-cards .home-page-col-one {
+        display: block;
+        width: 25%;
+        height: 480px;
+        padding-bottom: 30px;
+        overflow: hidden;
+    }
+
+    .home-page-cards .home-page-col-two {
+        width: 47%;
+    }
+
+    .home-page-cards .home-page-col-three {
+        display: block;
+        width: 25%;
+        padding: 20px;
+        background-color: #0F172A;
+        height: 300px;
+    }
+}
+
+.home-page-col-one {
+    background-color: #0F172A;
+    border-radius: 4px;
+}
+
+.col-card-one-img1 img {
+    width: 100%;
+    height: 120px;
+    background-position: top;
+}
+
+.col-card-onde-img2 {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.col-card-onde-img2 img {
+    width: 90px;
+    height: 80px;
+    border-radius: 50%;
+    position: absolute;
+    top: -40px;
+}
+
+.parte-name-empresa {
+    margin-top: 49px;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.parte-descricao-empresa p {
+    text-align: center;
+    font-size: 14px;
+    padding: 10px;
+}
+
+.whoViewCol-one,
+.whoViewCol-two {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 5px 10px 3px 10px;
+}
+
+.whoViewCol-one span,
+.whoViewCol-two span:first-child {
+    color: blueviolet;
+    font-size: 13px;
+}
+
+.whoViewCol-one span,
+.whoViewCol-two span:last-child {
+    color: rgb(28, 65, 230);
+    font-size: 13px;
+}
+
+.hr-line {
+    width: 100%;
+    height: 1px;
+    background-color: #8a8a8a9a;
+}
+
+.second-col-section-home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px 12px 10px 12px;
+}
+
+.second-col-section-home img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.second-col-section-home input {
+    width: 85%;
+    height: 45px;
+    border-radius: 20px;
+    padding-left: 10px;
+    border: 1px solid #8a8a8a9a;
+    outline: none;
+}
+
+.page-home-uploads-section ul {
+    display: flex;
+    width: 90%;
+    align-items: center;
+    margin: auto;
+    justify-content: space-between;
+    list-style-type: none;
+}
+
+.page-home-uploads-section ul li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.page-home-uploads-section ul li span {
+    margin-right: 14px;
+}
+
+.containerPost {
+    width: 100%;
+    height: auto;
+    background-color: #0F172A;
+    border-radius: 4px;
+    margin-top: 5px;
+    border: 1px solid #8a8a8a9a;
+}
+
+.whoViewdPost {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    align-items: center;
+    padding: 5px 10px 3px 10px;
+}
+
+.whoViewdPostName {
+    color: rgb(150, 145, 145);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.whoViewdPostName span {
+    color: beige;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.whoViewdPostDots {
+    color: rgb(255, 255, 255);
+    font-size: 25px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.userPostDetailsImg img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.userPostDetails {
+    padding: 2px 15px 2px 15px;
+}
+
+.userPostDetails {
+    display: flex;
+}
+
+.userPostMainDetails {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+}
+
+.userDetailsNamePost {
+    color: aliceblue;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.userDetails-about {
+    color: aliceblue;
+    font-size: 12px;
+}
+
+.mainFeedPost p {
+    color: aliceblue;
+    font-size: 14px;
+    padding: 5px 15px 2px 15px;
+    font-weight: 500;
+}
+
+.mainFeedPost img {
+    width: 100%;
+    margin-top: 5px;
+}

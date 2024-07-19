@@ -1,0 +1,15 @@
+.main{
+    background-color: #0f172a86;
+    width: 100vw;
+    height: 100vh;
+    overflow-y:scroll;
+}
+.main::-webkit-scrollbar{
+    opacity: 0;
+}
+.main-wrap{
+    height: 90%;
+    max-width: 1200px;
+    margin:auto;
+    padding: 20px 0 20px 0;
+}
