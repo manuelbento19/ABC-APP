@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css'; // Importação dos estilos específicos
 import { Logoform } from '../../components/logo';
 import axios from 'axios';
+import {AuthContext}  from '../../context/AuthContext'
 
 export function Login() {
+  const {user, login} = useContext(AuthContext);
+
   const [Email, setEmail] = useState('');
   const [Senha, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,16 +20,14 @@ export function Login() {
     setError('');
     setLoading(true);
 
+
     try {
       // Faz a requisição POST para o endpoint /login
-      const response = await axios.post('http://localhost:3001/login', { Email: Email, Senha: Senha });
-      const token = response.data.token;
+      // const response = await axios.post('http://localhost:3001/login', { Email: Email, Senha: Senha });
+      // const token = response.data.token;
+      login(Email, Senha);
 
-      // Armazena o token no localStorage
-      localStorage.setItem('token', token);
-      setLoading(false);
-      setSuccess(true);
-      navigate('/userpage');
+     
     } catch (error) {
       setLoading(false);
       if (error.response && error.response.status === 401) {
@@ -37,6 +38,15 @@ export function Login() {
       console.error('Erro no login:', error);
     }
   };
+
+  useEffect(()=>{  
+    if(user != null){
+      // se user nao esta vasio => user esta logado
+      setLoading(false);
+      setSuccess(true);
+      navigate('/userpage');
+    } 
+  },[user]);
 
   return (
     <>
