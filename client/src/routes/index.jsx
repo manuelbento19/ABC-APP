@@ -14,18 +14,20 @@ import { UserDashboard } from '../pages/UserDashboard';
 import { ProfileEdit } from "../pages/Editprofile";
 import { ServicesPage } from "../pages/ServicePage";
 import { Beneficios } from "../pages/Beneficios";
+import { AuthProvider } from "../pages/Contexts/AuthContext";
 
 function AppRoutes() {
-    return(
+    return( 
         <BrowserRouter>
-            <Routes>
+            <Routes> 
+               
                 <Route path="/" element={ <Home /> }> </Route>
                 <Route path="/sobrenos" element={ <SobreNos/> }> </Route>
                 <Route path="/beneficios" element={ <Beneficios/> }> </Route>
                 <Route path="/faqs" element={ <Faqs/> }> </Route>
                 <Route path="/register" element={ <Register /> }> </Route>
                 <Route path="/login" element={ < Login /> }> </Route>
-                <Route path="/userpage" element={ < UserPage /> }> </Route>
+                <Route path="/userpage" element={ <AuthProvider> < UserPage /> </AuthProvider>}> </Route>
                 <Route path="/profile" element={ < UserProfile /> }> </Route>
                 <Route path="/connections" element={ < ConnectionsPage /> }> </Route>
                 <Route path="/notification" element={ < NotificationsPage /> }> </Route>
@@ -34,8 +36,9 @@ function AppRoutes() {
                 <Route path="/editprofile" element={<ProfileEdit />}> </Route>
                 <Route path="/services" element={<ServicesPage />}> </Route>           
                 <Route path="*" element={ < PageNotFound /> }> </Route>
-            </Routes>
-        </BrowserRouter>
+               
+                </Routes>
+        </BrowserRouter> 
     );
 }
 export default AppRoutes;

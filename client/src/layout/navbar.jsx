@@ -22,7 +22,7 @@ export function Navbar() {
 
     return (
         <div className="w-screen h-16 bg-gray-900">
-            <div className="h-5/6 max-w-screen-xl mx-auto pt-4 flex justify-between items-center px-4 sm:px-6 lg:px-11">
+            <div className=" h-5/6 max-w-screen-xl mx-auto pt-4 flex justify-between items-center px-4 sm:px-6 lg:px-11">
                 <div className="flex items-center">
                         <Logo/>
                     <div className="ml-4 flex items-center relative">
@@ -77,7 +77,7 @@ export function Navbar() {
                 </div>
             </div>
             {isMenuOpen && (
-                <div className="fixed inset-0 bg-slate-900  z-50 flex flex-col items-center justify-center p-4">
+                <div  className=" fixed inset-0 bg-slate-900  z-50 flex flex-col items-center justify-center p-4">
                     <FaTimes className="text-white text-2xl cursor-pointer absolute top-4 right-4" onClick={handleCloseMenu} />
                     <ul className="grid grid-cols-2 gap-8">
                         

@@ -4,15 +4,9 @@ import { Header } from '../../components/Header';
 const people = [
   {
     name: 'Nvuala Carvalho',
-    role: 'Co-Founder / CEO',
+    role: 'Founder / CEO',
     imageUrl:
       'https://media.licdn.com/dms/image/D4D03AQFAjv79Ir6zdA/profile-displayphoto-shrink_200_200/0/1718754759947?e=1726099200&v=beta&t=df84tdu8C8Bvcb49YaKr9JNL0slRnyiLCL9e6KoBVU4',
-  },
-  {
-    name: 'Anderson Claúdio',
-    role: 'Co-Founder / CEO',
-    imageUrl:
-      'https://media.licdn.com/dms/image/D4D03AQGrnbkRmvZXsA/profile-displayphoto-shrink_800_800/0/1692366030427?e=1726704000&v=beta&t=-R8FY8bszcaCGEUy3SjLxIFN8hnAfj79cZJdPX2I6Uw'
   }
 ];
 

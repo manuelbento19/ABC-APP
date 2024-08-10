@@ -1,241 +1,399 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import CarexLogo from "../../assets/img/carex_logo.png";
-import { FaCamera, FaVideo, FaLine, FaCalendar } from 'react-icons/fa';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { FaImage, FaCalendarAlt, FaRocket, FaUsers } from 'react-icons/fa'; 
 
 export function CreatePost() {
-  const [postType, setPostType] = useState(null); // Estado para controlar o tipo de post
-  const [modalOpen, setModalOpen] = useState(false); // Estado para controlar abertura do modal
-  const [mediaFile, setMediaFile] = useState(null); // Estado para armazenar arquivo de mídia selecionado
-  const [mediaPreview, setMediaPreview] = useState(null); // Estado para armazenar a pré-visualização da mídia
-  const [eventDate, setEventDate] = useState(new Date()); // Estado para armazenar a data do evento
-  const [description, setDescription] = useState(''); // Estado para armazenar a descrição do post
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('post'); // Estado para controlar a aba ativa
+  const [postContent, setPostContent] = useState('');
+  const [postMedia, setPostMedia] = useState(null);
+  const [isPublishButtonDisabled, setIsPublishButtonDisabled] = useState(true);
+  const [startupName, setStartupName] = useState('');
+  const [startupDescription, setStartupDescription] = useState('');
+  const [zoomLink, setZoomLink] = useState('');
+  const [businessRoomTitle, setBusinessRoomTitle] = useState('');
+  const [businessRoomDescription, setBusinessRoomDescription] = useState('');
+  const [eventName, setEventName] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
 
-  const handlePostTypeChange = (type) => {
-    setPostType(type);
-    setModalOpen(true); // Abre o modal quando seleciona o tipo de post
+  const handleChangeContent = (event) => {
+    setPostContent(event.target.value);
+    setIsPublishButtonDisabled(!(postContent.trim() || postMedia));
   };
 
-  const handleMediaChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMediaFile(file);
-      setMediaPreview(URL.createObjectURL(file)); // Criar pré-visualização da mídia
+  const handleChangeMedia = (event) => {
+    setPostMedia(event.target.files[0]);
+    setIsPublishButtonDisabled(!(postContent.trim() || postMedia));
+  };
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    // Aqui você faria a requisição para o seu backend para salvar o post
+    // console.log('Post enviado com sucesso:', postContent, postMedia);
+
+    // Limpar os estados
+    setPostContent('');
+    setPostMedia(null);
+    setStartupName('');
+    setStartupDescription('');
+    setZoomLink('');
+    setBusinessRoomTitle('');
+    setBusinessRoomDescription('');
+    setEventName('');
+    setEventDate('');
+    setEventTime('');
+    setEventLocation('');
+    setEventDescription('');
+    handleCloseModal();
+  };
+
+  const handleClickOutside = (event) => {
+    if (showModal && !event.target.closest('.modal-container')) {
+      handleCloseModal();
     }
   };
 
-  const handlePost = () => {
-    // Lógica para enviar o post com os dados coletados (pode ser implementada aqui)
-    // Aqui você pode adicionar a lógica para enviar os dados do post para o backend, por exemplo
-    // Resetar estados após a postagem
-    setModalOpen(false);
-    setMediaFile(null);
-    setMediaPreview(null);
-    setEventDate(new Date()); // Resetar a data do evento
-    setDescription(''); // Limpar a descrição
-  };
+  React.useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showModal]);
 
-  const renderModalContent = () => {
-    switch (postType) {
-      case 'meet':
-        return (
-          <div className="modal-content">
-            <h2 className="text-white font-bold text-xl mb-4">Criar Post Meet</h2>
-            <input
-              type="text"
-              placeholder="Título do Meet"
-              className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <input
-              type="text"
-              placeholder="Link da sala"
-              className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <div>
-              <label className="block text-white font-semibold mb-1">Upload de Imagem/Vídeo:</label>
-              <input
-                type="file"
-                accept="image/*, video/*"
-                onChange={handleMediaChange}
-                className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-              />
-              {mediaPreview && (
-                <div className="mt-2">
-                  {mediaFile.type.startsWith('image') ? (
-                    <img src={mediaPreview} alt="Preview" className="max-w-full h-48 rounded-lg" />
-                  ) : (
-                    <video src={mediaPreview} controls className="max-w-full h-48 rounded-lg"></video>
-                  )}
-                </div>
-              )}
-            </div>
-            <button onClick={handlePost} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full mt-4">
-              Postar
-            </button>
-          </div>
-        );
-      case 'startup':
-        return (
-          <div className="modal-content">
-            <h2 className="text-white font-bold text-xl mb-4">Criar Post StartUp</h2>
-            <input
-              type="text"
-              placeholder="Nome da Startup"
-              className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <textarea
-              placeholder="Descrição da Startup"
-              className="w-full h-20 focus-visible:ring-transparent rounded-md pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <div>
-              <label className="block text-white font-semibold mb-1">Upload de Imagem/Vídeo:</label>
-              <input
-                type="file"
-                accept="image/*, video/*"
-                onChange={handleMediaChange}
-                className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-              />
-              {mediaPreview && (
-                <div className="mt-2">
-                  {mediaFile.type.startsWith('image') ? (
-                    <img src={mediaPreview} alt="Preview" className="max-w-full h-48 rounded-lg" />
-                  ) : (
-                    <video src={mediaPreview} controls className="max-w-full h-48 rounded-lg"></video>
-                  )}
-                </div>
-              )}
-            </div>
-            <button onClick={handlePost} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full mt-4">
-              Postar
-            </button>
-          </div>
-        );
-      case 'evento':
-        return (
-          <div className="modal-content">
-            <h2 className="text-white font-bold text-xl mb-4">Criar Post Evento</h2>
-            <input
-              type="text"
-              placeholder="Nome do Evento"
-              className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <div className="mb-2">
-              <label className="block text-white font-semibold mb-1">Data e Hora do Evento:</label>
-              <DatePicker
-                selected={eventDate}
-                onChange={(date) => setEventDate(date)}
-                showTimeSelect
-                dateFormat="dd/MM/yyyy HH:mm"
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white"
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Local do Evento"
-              className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <div>
-              <label className="block text-white font-semibold mb-1">Upload de Imagem/Vídeo:</label>
-              <input
-                type="file"
-                accept="image/*, video/*"
-                onChange={handleMediaChange}
-                className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-              />
-              {mediaPreview && (
-                <div className="mt-2">
-                  {mediaFile.type.startsWith('image') ? (
-                    <img src={mediaPreview} alt="Preview" className="max-w-full h-48 rounded-lg" />
-                  ) : (
-                    <video src={mediaPreview} controls className="max-w-full h-48 rounded-lg"></video>
-                  )}
-                </div>
-              )}
-            </div>
-            <button onClick={handlePost} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full mt-4">
-              Postar
-            </button>
-          </div>
-        );
-      case 'midias':
-        return (
-          <div className="modal-content">
-            <h2 className="text-white font-bold text-xl mb-4">Criar Post Mídias</h2>
-            <textarea
-              placeholder="Descrição da Mídia"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full h-20 focus-visible:ring-transparent rounded-md pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-            />
-            <div>
-              <label className="block text-white font-semibold mb-1">Upload de Imagem/Vídeo:</label>
-              <input
-                type="file"
-                accept="image/*, video/*"
-                onChange={handleMediaChange}
-                className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white mb-2"
-              />
-              {mediaPreview && (
-                <div className="mt-2">
-                  {mediaFile.type.startsWith('image') ? (
-                    <img src={mediaPreview} alt="Preview" className="max-w-full h-48 rounded-lg" />
-                  ) : (
-                    <video src={mediaPreview} controls className="max-w-full h-48 rounded-lg"></video>
-                  )}
-                </div>
-              )}
-            </div>
-            <button onClick={handlePost} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full mt-4">
-              Postar
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-md p-4 mb-4">
-      <div className="second-col-section-home flex items-center mb-4 bg-gray-900">
-        <img src={CarexLogo} alt="Carex Logo" className="w-14 h-14 rounded-full mr-4" />
-        <input type="text" placeholder='Cria uma publicação' className="w-full h-10 focus-visible:ring-transparent rounded-full pl-4 border border-gray-700 bg-gray-700 text-white" />
-        <button onClick={() => setModalOpen(true)} className="ml-2 bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-2 rounded-full">
-          Postar
-        </button>
-      </div>
-      <div className="page-home-uploads-section justify-between">
-        <ul className="flex justify-between text-white font-semibold">
-          <li className="flex items-center mr-1" onClick={() => handlePostTypeChange('midias')}>
-            <FaCamera className="mr-1" /> Mídias
-          </li>
-          <li className="flex items-center px-2" onClick={() => handlePostTypeChange('meet')}>
-            <FaVideo className="mr-1" /> Meet
-          </li>
-          <li className="flex items-center px-2" onClick={() => handlePostTypeChange('startup')}>
-            <FaLine className="mr-1" /> StartUp
-          </li>
-          <li className="flex items-center" onClick={() => handlePostTypeChange('evento')}>
-            <FaCalendar className="mr-1" /> Evento
-          </li>
-        </ul>
-      </div>
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg">
-            <div className="flex justify-end">
-              <button onClick={() => setModalOpen(false)} className="text-white font-bold">
-                &times;
+    <div className="containerPost bg-gray-900 border border-gray-700 rounded-md p-4">
+      <div>
+        {/* Botão para abrir o modal */}
+        <div className="userPostDetails flex items-center mb-1">
+          <img src={CarexLogo} alt="" className="w-12 h-12 rounded-full mr-4" />
+
+          <div className="flex items-center gap-2 w-full">
+            <input
+              className="bg-gray-200 text-xs hover:border-spacing-1 text-black w-full h-10 rounded focus:outline-none focus:shadow-outline"
+              onClick={() => handleOpenModal('post')} // Chama handleOpenModal com 'post'
+              placeholder='O que estás a pensar?'
+            />
+                 
+          </div>
+          
+        </div>
+        <div className='flex items-center justify-between  gap-1  sm:ml-16 gap2 '>
+        <div 
+                className="bg-blue-500 hover:bg-blue-600 text-white w-auto h-8 rounded flex items-center justify-center focus:outline-none focus:shadow-outline" 
+                onClick={() => handleOpenModal('post')}
+              >
+                <FaImage className="text-white ml-2" />
+                <span className='ml-1 mr-1 text-xs '>Foto/Vídeo</span>
+              </div>
+        <div 
+                className="bg-green-500 hover:bg-green-600 text-white w-auto h-8 rounded flex items-center justify-center focus:outline-none focus:shadow-outline" 
+                onClick={() => handleOpenModal('startup')}
+              >
+                <FaRocket className="text-white ml-2" />
+                <span className='ml-1 mr-1 text-xs '>StarUp</span>
+              </div>
+              <div 
+                className="bg-purple-500 hover:bg-purple-600 text-white w-auto h-8 rounded flex items-center justify-center focus:outline-none focus:shadow-outline" 
+                onClick={() => handleOpenModal('businessRoom')}
+              >
+                <FaUsers className="text-white ml-2" />
+                <span className='ml-1 mr-1 text-xs '>Meet</span>
+              </div>
+              <div 
+                className="bg-orange-500 hover:bg-orange-600 text-white w-auto h-8 rounded flex items-center justify-center focus:outline-none focus:shadow-outline" 
+                onClick={() => handleOpenModal('event')}
+              >
+                <FaCalendarAlt className="text-white ml-2" />
+                <span className='ml-1 mr-1 text-xs '>Evento</span>
+              </div>
+            
+            
+            </div>      
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center modal-container">
+
+          <div className="bg-gray-100 rounded-lg shadow-md w-11/12 max-w-lg px-4 pt-5 pb-4 text-left overflow-hidden sm:p-6 sm:w-10/12 lg:w-8/12">
+            <div className="flex items-center gap-2 mb-4">
+              <img src={CarexLogo} alt="User avatar" className="w-10 h-10 rounded-full" />
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Carex Angola
+                </h3>
+                <span className="text-gray-500 text-xs">
+                  Publicar em Todos
+                </span>
+              </div>
+            </div>
+
+            {/* Abas de Conteúdo */}
+            <div className="flex mb-4">
+              <button
+                className={`px-1 py-2 rounded-t-lg sm:px-4 ${
+                  activeTab === 'post' ? 'bg-blue-500 text-gray-900' : 'bg-gray-200 text-gray-900'
+                }`}
+                onClick={() => handleTabChange('post')}
+              >
+                Postagem
+              </button>
+              <button
+                className={`px-1 py-2 rounded-t-lg sm:px-4 ${
+                  activeTab === 'startup' ? 'bg-blue-500 text-gray-900' : 'bg-gray-200 text-gray-900'
+                }`}
+                onClick={() => handleTabChange('startup')}
+              >
+                Startup
+              </button>
+              <button
+                className={`px-4 py-2 rounded-t-lg ${
+                  activeTab === 'businessRoom' ? 'bg-blue-500 text-gray-900' : 'bg-gray-200 text-gray-900'
+                }`}
+                onClick={() => handleTabChange('businessRoom')}
+              >
+                Sala de Negócios
+              </button>
+              <button
+                className={`px-2 py-2 rounded-t-lg sm:px-4 ${
+                  activeTab === 'event' ? 'bg-blue-500 text-gray-900' : 'bg-gray-200 text-gray-900'
+                }`}
+                onClick={() => handleTabChange('event')}
+              >
+                Evento
               </button>
             </div>
-            {renderModalContent()}
+
+            {/* Conteúdo da Aba Ativa */}
+            {activeTab === 'post' && (
+              <div>
+                <div className="mt-3">
+                  <textarea
+                    rows={4}
+                    placeholder="Sobre o que você quer falar?"
+                    className="w-full resize-none rounded-lg border text-gray-700 border-gray-300 focus:ring-2 focus:ring-blue-500 p-2"
+                    value={postContent}
+                    onChange={handleChangeContent}
+                  />
+                </div>
+                <div className="flex mt-4 gap-4">
+                  <div>
+                    <label htmlFor="postMedia" className="text-gray-600 block mb-1 font-medium">Imagem/Vídeo:</label>
+                    <input
+                      type="file"
+                      id="postMedia"
+                      accept="image/*, video/*"
+                      onChange={handleChangeMedia}
+                      className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 "
+                    />
+                    {postMedia && (
+                      <div className="mt-2">
+                        {postMedia.type.startsWith('image/') ? (
+                          <img src={URL.createObjectURL(postMedia)} alt="Preview da imagem" className="w-auto h-auto mt-2 rounded-lg" />
+                        ) : (
+                          <video src={URL.createObjectURL(postMedia)} controls className="w-auto h-auto mt-2 rounded-lg" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'startup' && (
+              <div>
+                <div className="mt-3">
+                  <label htmlFor="startupName" className="block mb-2 text-gray-700 text-sm font-bold">Nome da Startup:</label>
+                  <input
+                    type="text"
+                    id="startupName"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={startupName}
+                    onChange={(e) => setStartupName(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="startupDescription" className="block mb-2 text-gray-700 text-sm font-bold">Descrição:</label>
+                  <textarea
+                    id="startupDescription"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={startupDescription}
+                    onChange={(e) => setStartupDescription(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="postMedia" className="text-gray-600 block mb-1 font-medium">Imagem/Vídeo:</label>
+                  <input
+                    type="file"
+                    id="postMedia"
+                    accept="image/*, video/*"
+                    onChange={handleChangeMedia}
+                    className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  {postMedia && (
+                    <div className="mt-2">
+                      {postMedia.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(postMedia)} alt="Preview da imagem" className="w-auto h-auto mt-2 rounded-lg" />
+                      ) : (
+                        <video src={URL.createObjectURL(postMedia)} controls className="w-auto h-auto mt-2 rounded-lg" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'businessRoom' && (
+              <div>
+                <div className="mt-3">
+                  <label htmlFor="businessRoomTitle" className="block mb-2 text-gray-700 text-sm font-bold">Título da Sala:</label>
+                  <input
+                    type="text"
+                    id="businessRoomTitle"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={businessRoomTitle}
+                    onChange={(e) => setBusinessRoomTitle(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="zoomLink" className="block mb-2 text-gray-700 text-sm font-bold">Link da Sala no Zoom:</label>
+                  <input
+                    type="text"
+                    id="zoomLink"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={zoomLink}
+                    onChange={(e) => setZoomLink(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="businessRoomDescription" className="block mb-2 text-gray-700 text-sm font-bold">Descrição:</label>
+                  <textarea
+                    id="businessRoomDescription"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={businessRoomDescription}
+                    onChange={(e) => setBusinessRoomDescription(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="postMedia" className="text-gray-600 block mb-1 font-medium">Imagem/Vídeo:</label>
+                  <input
+                    type="file"
+                    id="postMedia"
+                    accept="image/*, video/*"
+                    onChange={handleChangeMedia}
+                    className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  {postMedia && (
+                    <div className="mt-2">
+                      {postMedia.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(postMedia)} alt="Preview da imagem" className="w-auto h-auto mt-2 rounded-lg" />
+                      ) : (
+                        <video src={URL.createObjectURL(postMedia)} controls className="w-auto h-auto mt-2 rounded-lg" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'event' && (
+              <div>
+                <div className="mt-3">
+                  <label htmlFor="eventName" className="block mb-2 text-gray-700 text-sm font-bold">Nome do Evento:</label>
+                  <input
+                    type="text"
+                    id="eventName"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={eventName}
+                    onChange={(e) => setEventName(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="eventDate" className="block mb-2 text-gray-700 text-sm font-bold">Data do Evento:</label>
+                  <input
+                    type="date"
+                    id="eventDate"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="eventTime" className="block mb-2 text-gray-700 text-sm font-bold">Hora do Evento:</label>
+                  <input
+                    type="time"
+                    id="eventTime"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={eventTime}
+                    onChange={(e) => setEventTime(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="eventLocation" className="block mb-2 text-gray-700 text-sm font-bold">Local do Evento:</label>
+                  <input
+                    type="text"
+                    id="eventLocation"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={eventLocation}
+                    onChange={(e) => setEventLocation(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="eventDescription" className="block mb-2 text-gray-700 text-sm font-bold">Descrição do Evento:</label>
+                  <textarea
+                    id="eventDescription"
+                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    value={eventDescription}
+                    onChange={(e) => setEventDescription(e.target.value)}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="postMedia" className="text-gray-600 block mb-1 font-medium">Imagem/Vídeo:</label>
+                  <input
+                    type="file"
+                    id="postMedia"
+                    accept="image/*, video/*"
+                    onChange={handleChangeMedia}
+                    className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 "
+                  />
+                  {postMedia && (
+                    <div className="mt-2">
+                      {postMedia.type.startsWith('image/') ? (
+                        <img src={URL.createObjectURL(postMedia)} alt="Preview da imagem" className="w-auto h-auto mt-2 rounded-lg" />
+                      ) : (
+                        <video src={URL.createObjectURL(postMedia)} controls className="w-auto h-auto mt-2 rounded-lg" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex justify-between mt-4">
+            <button type="button" className="bg-red-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-red-600 " onClick={handleCloseModal}>
+                Cancelar
+              </button>
+              <button type="submit" className="bg-blue-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-blue-600" disabled={isPublishButtonDisabled}>
+                Publicar
+              </button>
+            </form>
+            
           </div>
         </div>
       )}
     </div>
+    </div>
   );
 }
-

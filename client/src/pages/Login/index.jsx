@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './Login.css'; // Importação dos estilos específicos
 import { Logoform } from '../../components/logo';
+import axios from 'axios';
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [Email, setEmail] = useState('');
+  const [Senha, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -18,21 +18,23 @@ export function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/Login', {
-        email,
-        password,
-      });
+      // Faz a requisição POST para o endpoint /login
+      const response = await axios.post('http://localhost:3001/login', { Email: Email, Senha: Senha });
+      const token = response.data.token;
 
+      // Armazena o token no localStorage
+      localStorage.setItem('token', token);
       setLoading(false);
       setSuccess(true);
-      console.log('Login bem sucedido:', response.data);
-       // Armazena o userId no localStorage
-       localStorage.setItem('userId', response.data.userId);
       navigate('/userpage');
     } catch (error) {
       setLoading(false);
-      setError('Credenciais inválidas');
-      console.error('Erro ao realizar login:', error);
+      if (error.response && error.response.status === 401) {
+        setError('Credenciais inválidas');
+      } else {
+        setError('Erro ao fazer login. Tente novamente mais tarde.');
+      }
+      console.error('Erro no login:', error);
     }
   };
 
@@ -60,12 +62,12 @@ export function Login() {
                     <label htmlFor="email" className="block outline-0 focus:outline-0 text-sm font-medium leading-6 text-white">Endereço Email</label>
                     <div>
                       <input
-                        id="email"
-                        type="email"
+                        id="Email"
+                        type="Email"
                         autoComplete="email"
                         required
                         className="block w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                        value={email}
+                        value={Email}
                         onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
@@ -75,12 +77,13 @@ export function Login() {
                     <label htmlFor="password" className="block text-sm font-medium leading-6 text-white">Palavra-passe</label>
                     <div>
                       <input
-                        id="password"
+                        id="Senha"
+                        name='Senha'
                         type="password"
                         autoComplete="current-password"
                         required
                         className="block w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                        value={password}
+                        value={Senha}
                         onChange={(e) => setPassword(e.target.value)}
                       />
                     </div>
