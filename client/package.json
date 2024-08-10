@@ -28,8 +28,7 @@
     "react-scripts": "5.0.1",
     "redux": "^5.0.1",
     "web-vitals": "^2.1.4",
-    "yup": "^1.4.0",
-    "proxy": "http://localhost:3000"
+    "yup": "^1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
