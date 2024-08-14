@@ -1,56 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import CapaDefault from "../../assets/img/CapaDefoult.jpg";
+import ProfileDefault from "../../assets/img//profileDefoult.png";
+import React, { useEffect, useState, useContext } from 'react';
 import { FaChartLine } from "react-icons/fa6";
-import Carex1 from "../../assets/img/carex.png";
-import CarexLogo from "../../assets/img/carex_logo.png";
 import { Link, useLocation } from "react-router-dom";
 import aguardar from '../../assets/img/Spin@1x-1.0s-200px-200px (1).gif';
+import { AuthContext } from '../../context/AuthContext'; // Importe o contexto de autenticação
 
 export default function TimelineHeader() {
-  const [userData, setUserData] = useState(null);
+  const { user, userType } = useContext(AuthContext); // Obtenha o usuário e o tipo de usuário do contexto
   const location = useLocation(); // Obter o path da URL atual
 
-  useEffect(() => {
-    // Simula o carregamento dos dados do usuário
-    const fetchUserData = () => {
-      setTimeout(() => {
-        const dummyData = {
-          company: {
-            nome_empresa: 'Carex Angola, Lda',
-          },
-          entrepreneur: {
-            nome: 'Nvuala Carvalho',
-          },
-          area_atuacao: 'Importação e Exportação',
-        };
-        setUserData(dummyData);
-      }, 1000);
-    };
-
-    fetchUserData();
-  }, []);
-
-  if (!userData) {
+  if (!user) {
     return (
       <div className="loading-container flex justify-center items-center h-screen">
         <img src={aguardar} alt="Loading..." className="loading-gif" />
       </div>
     );
   }
-
-  const { company, entrepreneur } = userData;
-  const displayName = company ? company.nome_empresa : (entrepreneur ? entrepreneur.nome : 'Nome não disponível');
-
   return (
     <div className="px-full sm:px-2 shadow">
       <div className="relative h-96 rounded-b flex justify-center">
         <img
-          src={Carex1}
+          src={user.FotoCapa ? user.FotoCapa : CapaDefault}
           className="object-cover w-full h-full rounded-b"
           alt="cover"
         />
         <div className="absolute -bottom-6 sm:left-6 -bottom-16">
           <img
-            src={CarexLogo}
+            src={user.FotoPerfil ? user.FotoPerfil : ProfileDefault}
             className="object-cover border-2 border-gray-900 w-40 h-40 rounded-full"
             alt="cover"
           />
@@ -58,8 +35,8 @@ export default function TimelineHeader() {
       </div>
       <div className="flex justify-between mt-9">
         <div className="text-center mt-6 mx-3 text-3xl font-bold text-fBlack justify-center">
-          <p>{displayName}</p>
-          <p className="font-normal text-sm">{userData.area_atuacao}</p>
+          <p> {userType === 'empresa' ? user.company?.NomeEmpresa : user.entrepreneur?.Nome}</p>
+          <p className="font-normal text-sm">{user.tipo}</p>
         </div>
         <div className="text-center mt-6 text-3xl font-bold text-fBlack justify-center">
           <Link to={"/editprofile"} className="text-sm text-fGrey bg-blue-500 px-2 py-1 rounded">Editar perfil</Link>

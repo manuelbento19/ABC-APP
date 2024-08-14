@@ -1,47 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import CapaDefault from "../../assets/img/CapaDefoult.jpg";
+import ProfileDefault from "../../assets/img//profileDefoult.png";
+import React, { useEffect, useState, useContext } from 'react';
 import { PrincipalPage } from '../../layout/principalPage';
 import "./userpage.css";
-import Carex1 from "../../assets/img/carex.png";
-import CarexLogo from "../../assets/img/carex_logo.png";
 import { CreatePost } from '../../components/CreatePost/CreatePost';
 import { MainPost } from '../../components/MainPost/MainPost';
 import { Link } from 'react-router-dom';
 import aguardar from '../../assets/img/Spin@1x-1.0s-200px-200px (1).gif';
+import { AuthContext } from '../../context/AuthContext'; // Importe o contexto de autenticação
+
 
 export function UserPage() {
-    const [userData, setUserData] = useState(null);
+    const { user, userType } = useContext(AuthContext); // Obtenha o usuário e o tipo de usuário do contexto
     const [activeFilter, setActiveFilter] = useState('todos'); 
 
-    useEffect(() => {
-        const fetchUserData = () => {
-            setTimeout(() => {
-                const dummyData = {
-                    company: {
-                        nome_empresa: 'Carex Angola',
-                    },
-                    entrepreneur: {
-                        nome: 'Nvuala Carvalho',
-                    },
-                    title: 'Despachante',
-                    area_atuacao: 'Importação e Exportação',
-                };
-                setUserData(dummyData);
-            }, 1000);
-        };
-
-        fetchUserData();
-    }, []);
-
-    if (!userData) {
+    if (!user) {
         return (
             <div className="loading-container flex justify-center items-center h-screen">
                 <img src={aguardar} alt="Loading..." className="loading-gif" />
             </div>
         );
     }
-
-    const { company, entrepreneur } = userData;
-    const displayName = company ? company.nome_empresa : (entrepreneur ? entrepreneur.nome : 'Nome não disponível');
 
     const handleFilterChange = (filter) => {
         setActiveFilter(filter);
@@ -52,22 +31,25 @@ export function UserPage() {
             <div className="home-page-cards flex flex-col lg:flex-row justify-between rounded-md h-screen"> 
                 <div className="home-page-col-one bg-gray-800 border  border-gray-700 rounded-md hidden lg:block w-full lg:w-1/5 "> 
                     <div className="col-card-one-img1 mb-4">
-                        <img src={Carex1} alt="" className="w-full h-32 object-cover" />
+                        <img src={user.FotoCapa ? user.FotoCapa : CapaDefault} alt="" className="w-full h-32 object-cover" /> 
                     </div>
                     <div className="col-card-onde-img2 relative flex justify-center items-center mb-4">
-                        <img src={CarexLogo} alt="" className="w-20 h-20 rounded-full absolute -top-10" />
+                        <img src={user.FotoPerfil ? user.FotoPerfil : ProfileDefault} alt="" className="w-20 h-20 rounded-full absolute -top-10" />
                     </div>
                     <div className="parte-name-empresa text-center text-white font-bold mt-5 mb-1">
-                        <h1><Link to="/edit-profile" className="text-lg  hover:underline">{displayName}</Link></h1>
+                        <h1><Link to="/edit-profile" className="text-lg  hover:underline">
+                            {/* Renderize o nome corretamente com base no tipo de usuário */}
+                            {userType === 'empresa' ? user.company?.NomeEmpresa : user.entrepreneur?.Nome}
+                        </Link></h1>
                     </div>
                     <div className="parte-descricao-empresa text-center text-white mb-2">
-                        <p>{userData.title}</p>
+                        <p className="capitalize">{user.tipo}</p>
                     </div>
                     <div className="hr-line w-full h-px bg-gray-600 my-2"></div>
                     <div className="whoviewurprofilesec text-white">
                         <div className="flex justify-between text-blue-400 mb-2 px-2 hover:cursor-pointer">
                             <span className='text-white'>Área de Actuação:</span>
-                            <span className='text-nowrap'>{userData.area_atuacao}</span>
+                            <span className='text-nowrap'>{user.AreaAtuacao}</span>
                         </div>
                         <div className="flex justify-between text-blue-400 mb-2 px-2 hover:cursor-pointer">
                             <span className='text-white'>Visualização do Perfil:</span>

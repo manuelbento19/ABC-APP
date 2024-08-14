@@ -1,38 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { FaSuitcase, FaHouse, FaLocationPin, FaRss } from 'react-icons/fa6';
 import { Link } from 'react-router-dom';
 import aguardar from '../../assets/img/Spin@1x-1.0s-200px-200px (1).gif';
+import { AuthContext } from '../../context/AuthContext'; // Importe o contexto de autenticação
 
 export function Intro() {
-  // Dados simulados para o usuário
-  const [userData, setUserData] = useState(null); // Inicializa o estado userData como null
+  const { user, userType } = useContext(AuthContext); // Obtenha o usuário e o tipo de usuário do contexto
 
-  useEffect(() => {
-    // Função para simular a obtenção dos dados do usuário
-    const fetchUserData = () => {
-      // Dados simulados
-      const simulatedData = {
-        company: {
-          nome_empresa: 'Minha Empresa',
-          nif_empresa: '123456789',
-          ano_existencia: '10'
-        },
-        entrepreneur: null, // Dados de empreendedor não estão disponíveis
-        title: 'Empresário',
-        endereco: 'Rua da Liberdade',
-        provincia: 'Luanda'
-      };
 
-      // Simula um atraso na obtenção dos dados
-      setTimeout(() => {
-        setUserData(simulatedData);
-      }, 1000); // 1 segundo de atraso para simular carregamento
-    };
-
-    fetchUserData(); // Chama a função para simular a obtenção dos dados quando o componente monta
-  }, []);
-
-  if (!userData) {
+  if (!user) {
     return (
       // Mostra "Loading..." enquanto os dados do usuário estão sendo carregados
       <div className="loading-container flex justify-center items-center h-screen">
@@ -41,8 +17,6 @@ export function Intro() {
     );
   }
 
-  const { company } = userData;
-  const displayName = company ? company.nome_empresa : 'Nome não disponível';
 
   return (
     <div className="shadow-fb rounded w-full bg-gray-800 p-4">
@@ -50,37 +24,37 @@ export function Intro() {
       <div className="mt-4 flex items-center">
         <FaSuitcase />
         <span className="ml-2">
-          {userData.title}
+         Área de Actuação <b>{user.AreaAtuacao}</b>
         </span>
       </div>
       <div className="mt-4 flex items-center">
         <FaHouse />
         <span className="ml-2">
-          NIF: <b>{company.nif_empresa}</b>
+          NIF/BI: <b>  {userType === 'empresa' ? user.company?.NIF : user.entrepreneur?.BI}</b>
         </span>
       </div>
       <div className="mt-4 flex items-center">
         <FaHouse />
         <span className="ml-2">
-          {userData.endereco} Edifício Azul <b>AP. 101 - 3º Andar</b>
+          <Link>{user.Endereco}</Link>
         </span>
       </div>
       <div className="mt-4 flex items-center">
         <FaLocationPin />
         <span className="ml-2">
-          {userData.provincia}, Angola
+          {user.Provincia}, Angola
         </span>
       </div>
       <div className="mt-4 flex items-center">
         <FaSuitcase />
         <span className="ml-2">
-          Atuando há <b>{company.ano_existencia}</b> anos
+          Atuando há <b>{userType === 'empresa' ? user.company?.AnosDeExistencia : user.entrepreneur?.DataNascimento}</b> anos
         </span>
       </div>
       <div className="mt-4 flex items-center">
         <FaRss />
         <span className="ml-2">
-          Número de Conexões <b>97</b>
+          Representente: <b><Link>{userType === 'empresa' ? user.company?.NomeRepresentante : user.entrepreneur?.Nome}</Link></b>
         </span>
       </div>
       <div className="mt-5 flex items-center justify-center">

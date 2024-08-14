@@ -11,23 +11,31 @@ export const AuthProvider = ({ children }) => {
   const [userType, setUserType] = useState(null); // Adiciona o estado para o tipo de usuário
 
   // Função para logar o usuário
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post("http://localhost:3001/login", {
-        Email: email,
-        Senha: password,
-      });
-      setToken(response.data.token);
-      localStorage.setItem("token", response.data.token);
+  // AuthContext.js
+const login = async (email, password) => {
+  try {
+    const response = await axios.post("http://localhost:3001/login", {
+      Email: email,
+      Senha: password,
+    });
+    setToken(response.data.token);
+    localStorage.setItem("token", response.data.token);
+
+    if (response.data.user && response.data.user.tipo) { // Verifica se a propriedade existe
       setUser(response.data.user); // Assumindo que a API retorna o usuário
       setUserType(response.data.user.tipo); // Define o tipo de usuário
       console.log("user: ", response.data);
       console.log("userType: ", response.data.user.tipo);
-    } catch (error) {
-      console.error("Erro ao logar:", error);
-      // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+    } else {
+      console.error('Propriedade "tipo" não encontrada na resposta da API'); 
+      // Tratar o erro (exibir uma mensagem de erro)
     }
-  };
+  } catch (error) {
+    console.error("Erro ao logar:", error);
+    window.location.reload(alert("Credênciais Invalidas"));
+    // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+  }
+};
 
   // Função para sair da conta
   const logout = () => {
@@ -49,21 +57,22 @@ export const AuthProvider = ({ children }) => {
       setToken(storedToken);
       // Fazer uma requisição para obter as informações do usuário (verifique sua API)
       axios
-        .get("/usuarios/me", {
+        .get(`http://localhost:3001/usuarios/`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
           },
         })
         .then((response) => {
-          setUser(response.data);
-          setUserType(response.data.tipo);
+          setUser(response?.data);
+          setUserType(response?.data?.tipo);
+          
         })
         .catch((error) => {
           // Tratar o erro caso a requisição falhe
           console.error("Erro ao obter informações do usuário:", error);
         });
     }
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider

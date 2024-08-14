@@ -1,110 +1,83 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import CarexLogo from "../../assets/img/carex_logo.png";
 import { FaThumbsUp, FaShare, FaChevronCircleRight } from 'react-icons/fa';
 import aguardar from '../../assets/img/Spin@1x-1.0s-200px-200px (1).gif';
+import ProfileDefault from "../../assets/img//profileDefoult.png";
+import { AuthContext } from '../../context/AuthContext'; 
+import axios from 'axios'; 
 
-export function MainPost({ filter }) { // Recebe o filtro como prop
-    const [userData, setUserData] = useState(null);
+export function MainPost({ filter, token }) { 
+    const { user, userType, setUser, setUserType } = useContext(AuthContext); 
+    const [posts, setPosts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchUserData = () => {
-            setTimeout(() => {
-                const dummyData = {
-                    company: {
-                        nome_empresa: 'Nome da Empresa',
-                    },
-                    entrepreneur: {
-                        nome: 'Nome do Empreendedor',
-                    },
-                    title: 'Título do Usuário',
-                };
-                setUserData(dummyData);
-            }, 1000);
+        // Se o token mudou, atualiza o estado do contexto
+        if (token) {
+            const fetchUserData = async () => {
+                try {
+                    const response = await axios.get('http://localhost:3001/usuarios/', {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        }
+                    });
+
+                    // Verifique se o response.data é válido e se a propriedade 'tipo' existe
+                    if (response.data && response.data.tipo) { 
+                        setUser(response.data);
+                        setUserType(response.data.tipo); // Use response.data.tipo
+                    } else {
+                        console.error('Dados do usuário inválidos ou propriedade "tipo" ausente');
+                        // Trate o erro (ex: mostre uma mensagem de erro ao usuário)
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao obter dados do usuário:', error);
+                    console.log('Token do localStorage:', localStorage.getItem('token'));
+                    // Trate o erro (ex: mostre uma mensagem de erro ao usuário)
+                }
+            };
+            fetchUserData();
+        }
+
+        const fetchPosts = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/postagens', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                setPosts(response.data.map(post => ({
+                    ...post,
+                    author: {
+                        // ...post.author, 
+                        name: post.author ? post.author.name : 'Nome do Autor', // Verifica se post.author existe
+                        tipo: post.author ? post.author.tipo : 'Tipo Desconhecido' // Verifica se post.author existe
+                    }
+                })));
+            } catch (error) {
+                console.error('Erro ao obter posts:', error);
+                // Trate o erro (ex: mostre uma mensagem de erro ao usuário)
+            } finally {
+                setIsLoading(false); 
+            }
         };
 
-        fetchUserData();
-    }, []);
+        fetchPosts(); 
+    }, [token]); // Adiciona o token JWT como dependência para refazer a requisição se o token mudar
+    // Filtrar os posts
+    const filteredPosts = filter === 'todos'
+        ? posts
+        : posts.filter((post) => post.type === filter);
 
-    if (!userData) {
+    if (isLoading) {
         return (
             <div className="loading-container flex justify-center items-center h-screen">
                 <img src={aguardar} alt="Loading..." className="loading-gif" />
             </div>
         );
     }
-
-    const { company, entrepreneur } = userData;
-    const displayName = company ? company.nome_empresa : (entrepreneur ? entrepreneur.nome : 'Nome não disponível');
-
-    // Dados de posts (simulando)
-    const posts = [
-        {
-            id: 1,
-            type: 'post',
-            content: 'A empresa em si é uma empresa de muito sucesso. Você nos deve isso, quão maior é essa grande escolha para nós? E quando com o presente acusamos o exercício da mais digna distinção, o prazer da flexibilidade de algo cego?',
-            image: CarexLogo,
-            author: {
-                name: 'Carex Angola',
-                title: 'Despachante',
-            },
-            comments: [
-                {
-                    author: 'Nvuala Carvalho',
-                    content: 'Já aderi muitos dos serviços da Carex, e são excelentes.',
-                },
-                {
-                    author: 'Anderson Cláudio',
-                    content: 'Serviço de excelência',
-                },
-            ],
-        },
-        {
-            id: 2,
-            type: 'eventos',
-            title: 'Evento Teste',
-            description: 'Descrição do evento teste',
-            image: CarexLogo,
-            date: '2024-03-15',
-            time: '10:00',
-            location: 'Local do evento',
-            author: {
-                name: 'Nome do Autor',
-                title: 'Título do Autor',
-            },
-            comments: [],
-        },
-        {
-            id: 3,
-            type: 'startup',
-            title: 'Startup Inc.',
-            description: 'Descrição da Startup Inc.',
-            image: CarexLogo,
-            author: {
-                name: 'Nome do Autor',
-                title: 'Título do Autor',
-            },
-            comments: [],
-        },
-        {
-            id: 4,
-            type: 'salasDeNegocios',
-            title: 'Sala de Reunião',
-            description: 'Descrição da Sala de Reunião',
-            zoomLink: 'https://zoom.us/mymeeting',
-            image: CarexLogo,
-            author: {
-                name: 'Nome do Autor',
-                title: 'Título do Autor',
-            },
-            comments: [],
-        },
-        // ... mais posts
-    ];
-
-    // Filtrar os posts
-    const filteredPosts = filter === 'todos'
-        ? posts
-        : posts.filter((post) => post.type === filter);
 
     return (
         <div className="containerPost bg-gray-900 border border-gray-700 rounded-md p-4">
@@ -116,10 +89,10 @@ export function MainPost({ filter }) { // Recebe o filtro como prop
                     </div>
                     <div className="hr-line w-full h-px bg-gray-600 my-1"></div>
                     <div className="userPostDetails flex items-center mb-1">
-                        <img src={CarexLogo} alt="" className="w-12 h-12 rounded-full" />
+                        <img src={post.author.FotoPerfil ? post.author.FotoPerfil : ProfileDefault} alt="" className="w-12 h-12 rounded-full" />
                         <div className="userPostMainDetails ml-4">
                             <span className="userDetailsNamePost text-white font-semibold cursor-pointer">{post.author.name}</span>
-                            <span className="userDetails-about text-gray-400 text-sm">{post.author.title}</span>
+                            <span className="userDetails-about text-gray-400 text-sm">{post.author.tipo}</span>
                         </div>
                     </div>
                     {post.type === 'post' && (

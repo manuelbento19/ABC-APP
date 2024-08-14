@@ -5,6 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // Importando a biblioteca JWT
 
+
 // Criando uma instância do app Express
 const app = express();
 // Habilita CORS para todas as origens (ajuste para sua necessidade)
@@ -30,10 +31,9 @@ db.connect(err => {
 });
 
 // Chave secreta para geração do token JWT
-const secretKey = 'GoodBless@2024'; // Utilize uma chave secreta mais segura em produção
+const secretKey = 'GoodBless@202'; // Utilize uma chave secreta mais segura em produção
 
 // Rotas da API
-
 app.post('/login', (req, res) => {
   const { Email, Senha } = req.body;
 
@@ -58,10 +58,28 @@ app.post('/login', (req, res) => {
     const usuario = results[0];
 
     // Gerando o token JWT
-    const token = jwt.sign({ userId: usuario.id }, secretKey, { expiresIn: '1h' }); // Definindo a duração do token (1 hora)
+    const token = jwt.sign({ userId: usuario.id }, secretKey, { expiresIn: '5h' }); // Definindo a duração do token (1 hora)
 
-    // Retornando o token JWT para o frontend
-    return res.json({ message: 'Login bem-sucedido', token: token });
+    // Obter o tipo do usuário (dentro do callback da consulta)
+    db.query('SELECT tipo FROM Usuario WHERE id = ?', [usuario.id], (err, tipoResults) => {
+      if (err) {
+        // Tratar o erro caso a consulta SQL falhe 
+        console.error('Erro ao obter o tipo do usuário:', err);
+        return res.status(500).json({ error: 'Erro ao obter o tipo do usuário' }); 
+      } else {
+        // Se a consulta for bem-sucedida:
+        if (tipoResults.length > 0) { // Verifique se encontrou um resultado
+          usuario.tipo = tipoResults[0].tipo;  // Adiciona o tipo ao objeto usuario
+
+          // Retornando o token JWT para o frontend
+          return res.json({ message: 'Login bem-sucedido', token: token, user: usuario }); 
+        } else {
+          // Tratar o caso onde o tipo não foi encontrado (erro ou inconsistência)
+          console.error('Tipo de usuário não encontrado para o ID:', usuario.id);
+          return res.status(400).json({ error: 'Tipo de usuário inválido' }); 
+        }
+      }
+    });
   });
 });
 
@@ -96,7 +114,8 @@ app.get('/usuarios/:id', (req, res) => {
   });
 });
 
-// POST /usuarios - Cria um novo usuário e associa a Empresa ou Empreendedor
+// POST /register - Cria um novo usuário e associa a Empresa ou Empreendedor
+
 app.post('/register', (req, res) => {
   const { Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, tipo } = req.body;
 
@@ -107,8 +126,8 @@ app.post('/register', (req, res) => {
   }
 
   // Cadastro do usuário
-  db.query('INSERT INTO Usuario (Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha) VALUES (?, ?, ?, ?, ?, ?)', 
-    [Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha], 
+  db.query('INSERT INTO Usuario (Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, tipo) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+    [Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, tipo], 
     (err, results) => {
       if (err) {
         console.error('Erro ao criar o usuário:', err);
@@ -151,38 +170,123 @@ app.post('/register', (req, res) => {
 
 // PUT /usuarios/:id - Atualiza um usuário existente
 app.put('/usuarios/:id', (req, res) => {
-  const id = req.params.id;
-  const { Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha } = req.body;
-  db.query('UPDATE Usuario SET Email = ?, Endereco = ?, Telefone = ?, AreaAtuacao = ?, Provincia = ?, Senha = ? WHERE id = ?', [Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, id], (err, results) => {
+  const id = req.params.id; // ID do usuário
+  const { Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, tipo } = req.body;
+
+  // Verifica se o tipo de usuário foi enviado e se é válido
+  if (tipo && !['empresa', 'empreendedor'].includes(tipo)) {
+    return res.status(400).json({ error: 'Tipo de usuário inválido. Use "empresa" ou "empreendedor".' });
+  }
+
+  // Atualizar dados do usuário na tabela Usuario
+  db.query('UPDATE Usuario SET Email = ?, Endereco = ?, Telefone = ?, AreaAtuacao = ?, Provincia = ?, Senha = ?, tipo = ? WHERE id = ?',
+    [Email, Endereco, Telefone, AreaAtuacao, Provincia, Senha, tipo, id],
+    (err, results) => {
+      if (err) {
+        console.error('Erro ao atualizar o usuário:', err);
+        return res.status(500).json({ error: 'Erro ao atualizar o usuário' });
+      }
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      // Se o usuário for uma empresa, atualiza os dados na tabela Empresa
+      if (tipo === 'empresa') {
+        const { NomeRepresentante, NomeEmpresa, NIF, AnosDeExistencia } = req.body;
+        db.query('UPDATE Empresa SET NomeRepresentante = ?, NomeEmpresa = ?, NIF = ?, AnosDeExistencia = ? WHERE UsuarioID = ?',
+          [NomeRepresentante, NomeEmpresa, NIF, AnosDeExistencia, id], // Usa o ID do usuário (id) aqui
+          (err, results) => {
+            if (err) {
+              console.error('Erro ao atualizar a empresa:', err);
+              return res.status(500).json({ error: 'Erro ao atualizar a empresa' });
+            }
+            return res.json({ message: 'Atualização realizada com sucesso' });
+          }
+        );
+      } 
+      // Se o usuário for um empreendedor, atualiza os dados na tabela Empreendedor
+      else if (tipo === 'empreendedor') {
+        const { Nome, Genero, DataNascimento, BI } = req.body;
+        db.query('UPDATE Empreendedor SET Nome = ?, Genero = ?, DataNascimento = ?, BI = ? WHERE UsuarioID = ?',
+          [Nome, Genero, DataNascimento, BI, id], // Usa o ID do usuário (id) aqui
+          (err, results) => { // Remova os parênteses desnecessários aqui
+            if (err) {
+              console.error('Erro ao atualizar o empreendedor:', err);
+              return res.status(500).json({ error: 'Erro ao atualizar o empreendedor' });
+            }
+            return res.json({ message: 'Atualização realizada com sucesso' });
+          }
+        );
+      } 
+      // Se o tipo de usuário não for empresa ou empreendedor, apenas atualiza os dados do usuário
+      else {
+        return res.json({ message: 'Atualização realizada com sucesso' });
+    } 
+  }); 
+});
+
+// Rota para obter os dados do usuário logado
+app.get('/usuarios/', (req, res) => {
+  // Verifica se o token está presente e se é válido
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+
+  // Separa o token do prefixo Bearer
+  const tokenWithoutBearer = token.replace('Bearer ', '');
+
+  // Verifica o token
+  jwt.verify(tokenWithoutBearer, secretKey, (err, decoded) => {
     if (err) {
-      console.error('Erro ao atualizar o usuário:', err);
-      res.status(500).json({ error: 'Erro ao atualizar o usuário' });
-      return;
+      return res.status(401).json({ error: 'Token inválido' });
     }
-    if (results.affectedRows === 0) {
-      res.status(404).json({ error: 'Usuário não encontrado' });
-      return;
-    }
-    res.json({ message: 'Usuário atualizado com sucesso' });
+
+    // Obter o ID do usuário
+    const userId = decoded.userId;
+
+    // Consultar os dados do usuário no banco de dados
+    db.query('SELECT * FROM Usuario WHERE id = ?', [userId], (err, results) => {
+      if (err) {
+        console.error('Erro ao obter os dados do usuário:', err);
+        return res.status(500).json({ error: 'Erro ao obter os dados do usuário' });
+      }
+
+      // Retornar os dados do usuário
+      const usuario = results[0];
+
+      // Verificar se o usuário é uma empresa ou empreendedor
+      if (usuario.tipo == 'empresa') {
+        db.query('SELECT * FROM Empresa WHERE UsuarioID = ?', [userId], (err, results) => {
+          if (err) {
+            console.error('Erro ao obter os dados da empresa:', err);
+            return res.status(500).json({ error: 'Erro ao obter os dados da empresa' });
+          }
+          // Adicionar dados da empresa ao objeto do usuário
+          usuario.company = results[0];
+          console.log(results)
+        
+          // Retorna o usuario completo após adicionar os dados da empresa
+          return res.json(usuario); 
+        });
+      } else {
+        db.query('SELECT * FROM Empreendedor WHERE UsuarioID = ?', [userId], (err, results) => {
+          if (err) {
+            console.error('Erro ao obter os dados do empreendedor:', err);
+            return res.status(500).json({ error: 'Erro ao obter os dados do empreendedor' });
+          }
+          // Adicionar dados do empreendedor ao objeto do usuário
+          usuario.entrepreneur = results[0];
+         
+          // Retorna o usuario completo após adicionar os dados do empreendedor
+          return res.json(usuario); 
+        });
+      }
+    });
   });
 });
 
-// DELETE /usuarios/:id - Exclui um usuário existente
-app.delete('/usuarios/:id', (req, res) => {
-  const id = req.params.id;
-  db.query('DELETE FROM Usuario WHERE id = ?', [id], (err, results) => {
-    if (err) {
-      console.error('Erro ao excluir o usuário:', err);
-      res.status(500).json({ error: 'Erro ao excluir o usuário' });
-      return;
-    }
-    if (results.affectedRows === 0) {
-      res.status(404).json({ error: 'Usuário não encontrado' });
-      return;
-    }
-    res.json({ message: 'Usuário excluído com sucesso' });
-  });
-});
 
 // 2. Empresas
 
@@ -315,64 +419,7 @@ app.delete('/empreendedores/:id', (req, res) => {
     res.json({ message: 'Empreendedor excluído com sucesso' });
   });
 });
-// Rota para obter os dados do usuário logado
-app.get('/usuarios/me', (req, res) => {
-  // Verifica se o token está presente e se é válido
-  const token = req.headers.authorization;
 
-  if (!token) {
-    return res.status(401).json({ error: 'Token não fornecido' });
-  }
-
-  // Separa o token do prefixo Bearer
-  const tokenWithoutBearer = token.replace('Bearer ', '');
-
-  // Verifica o token
-  jwt.verify(tokenWithoutBearer, secretKey, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Token inválido' });
-    }
-
-    // Obter o ID do usuário
-    const userId = decoded.userId;
-
-    // Consultar os dados do usuário no banco de dados
-    db.query('SELECT * FROM Usuario WHERE id = ?', [userId], (err, results) => {
-      if (err) {
-        console.error('Erro ao obter os dados do usuário:', err);
-        return res.status(500).json({ error: 'Erro ao obter os dados do usuário' });
-      }
-
-      // Retornar os dados do usuário
-      const usuario = results[0];
-
-      // Verificar se o usuário é uma empresa ou empreendedor
-      if (usuario.tipo === 'empresa') {
-        db.query('SELECT * FROM Empresa WHERE UsuarioID = ?', [userId], (err, results) => {
-          if (err) {
-            console.error('Erro ao obter os dados da empresa:', err);
-            return res.status(500).json({ error: 'Erro ao obter os dados da empresa' });
-          }
-          // Adicionar dados da empresa ao objeto do usuário
-          usuario.company = results[0];
-          // Retorna o usuario completo após adicionar os dados da empresa
-          return res.json(usuario); 
-        });
-      } else if (usuario.tipo === 'empreendedor') {
-        db.query('SELECT * FROM Empreendedor WHERE UsuarioID = ?', [userId], (err, results) => {
-          if (err) {
-            console.error('Erro ao obter os dados do empreendedor:', err);
-            return res.status(500).json({ error: 'Erro ao obter os dados do empreendedor' });
-          }
-          // Adicionar dados do empreendedor ao objeto do usuário
-          usuario.entrepreneur = results[0];
-          // Retorna o usuario completo após adicionar os dados do empreendedor
-          return res.json(usuario); 
-        });
-      }
-    });
-  });
-});
 // 4. Serviços
 
 // GET /servicos - Retorna todos os serviços
@@ -1164,18 +1211,71 @@ app.delete('/administradores/:id', (req, res) => {
 
 // 14. Postagens
 
-// GET /postagens - Retorna todas as postagens
 app.get('/postagens', (req, res) => {
-  db.query('SELECT * FROM Postagem', (err, results) => {
-    if (err) {
-      console.error('Erro ao obter as postagens:', err);
-      res.status(500).json({ error: 'Erro ao obter as postagens' });
-      return;
-    }
-    res.json(results);
-  });
+  // Verifique se o token está presente
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+  console.log('Token recebido:', token); 
+  console.log('Cabeçalho da Requisição:', {
+    Authorization: `Bearer ${token}`
 });
+  // Separa o token do prefixo Bearer
+  const tokenWithoutBearer = token.replace('Bearer ', '');
 
+  // Verifica o token e extrai o ID do usuário
+  jwt.verify(tokenWithoutBearer, secretKey, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+
+    // Consulta todas as postagens
+    db.query('SELECT * FROM Postagem', (err, results) => {
+      if (err) {
+        console.error('Erro ao obter as postagens:', err);
+        res.status(500).json({ error: 'Erro ao obter as postagens' });
+        return;
+      }
+  
+      // Adiciona o nome do autor a cada postagem
+      const postsComAutor = results.map(post => {
+        return new Promise((resolve, reject) => {
+          // Consulta para o nome do autor baseado no tipo
+          db.query(`SELECT 
+                      CASE
+                          WHEN p.tipo = 'empreendedor' THEN e.Nome
+                          WHEN p.tipo = 'empresa' THEN em.NomeEmpresa
+                          ELSE NULL
+                      END AS Nome, 
+                      p.tipo
+                    FROM Postagem p
+                    LEFT JOIN Empreendedor e ON p.UsuarioID = e.UsuarioID
+                    LEFT JOIN Empresa em ON p.UsuarioID = em.UsuarioID
+                    WHERE p.id = ?`, [post.id], (err, autorResults) => {
+            if (err) {
+              console.error('Erro ao obter o nome do autor:', err);
+              reject(err);
+            } else {
+              post.author = {
+                name: autorResults[0].Nome, 
+                tipo: autorResults[0].tipo
+              };
+              resolve(post);
+            }
+          });
+        });
+      });
+  
+      // Resolve todas as promessas para obter os posts com autor
+      Promise.all(postsComAutor).then(postsComAutor => {
+        res.json(postsComAutor);
+      }).catch(err => {
+        console.error('Erro ao obter posts com autor:', err);
+        res.status(500).json({ error: 'Erro ao obter posts com autor' });
+      });
+    });
+  });});
 // GET /postagens/:id - Retorna uma postagem específica pelo ID
 app.get('/postagens/:id', (req, res) => {
   const id = req.params.id;
@@ -1195,17 +1295,43 @@ app.get('/postagens/:id', (req, res) => {
 
 // POST /postagens - Cria uma nova postagem
 app.post('/postagens', (req, res) => {
-  const { Conteudo, Data, UsuarioID, Foto } = req.body;
-  db.query('INSERT INTO Postagem (Conteudo, Data, UsuarioID, Foto) VALUES (?, ?, ?, ?)', [Conteudo, Data, UsuarioID, Foto], (err, results) => {
+  const { Conteudo, Foto } = req.body; 
+
+  // Verifique se o token está presente
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(401).json({ error: 'Token não fornecido' });
+  }
+
+  // Separa o token do prefixo Bearer
+  const tokenWithoutBearer = token.replace('Bearer ', '');
+
+  // Verifica o token e extrai o ID do usuário
+  jwt.verify(tokenWithoutBearer, secretKey, (err, decoded) => {
     if (err) {
-      console.error('Erro ao criar a postagem:', err);
-      res.status(500).json({ error: 'Erro ao criar a postagem' });
-      return;
+      return res.status(401).json({ error: 'Token inválido' });
     }
-    res.status(201).json({ message: 'Postagem criada com sucesso', id: results.insertId });
+
+    const UsuarioID = decoded.userId; // Obteve o ID do usuário
+
+    // Insere a postagem com Data atual
+    const Data = new Date(); // Obtém a data e hora atuais
+
+    // Agora você pode usar o UsuarioID na sua consulta SQL
+    db.query('INSERT INTO Postagem (Conteudo, Data, UsuarioID, Foto) VALUES (?, ?, ?, ?)', 
+      [Conteudo, Data, UsuarioID, Foto], 
+      (err, results) => {
+        if (err) {
+          console.error('Erro ao criar a postagem:', err);
+          res.status(500).json({ error: 'Erro ao criar a postagem' });
+          return;
+        }
+        res.status(201).json({ message: 'Postagem criada com sucesso', id: results.insertId });
+        
+      }
+    );
   });
 });
-
 // PUT /postagens/:id - Atualiza uma postagem existente
 app.put('/postagens/:id', (req, res) => {
   const id = req.params.id;

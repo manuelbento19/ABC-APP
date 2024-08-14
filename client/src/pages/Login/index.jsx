@@ -13,13 +13,27 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null); // Para controlar o timeout
+
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+// Limpa o timeout anterior (se existir)
+if (timeoutId) {
+  clearTimeout(timeoutId);
+}
 
+// Define um novo timeout de 30 segundos
+const newTimeoutId = setTimeout(() => {
+  // Se o timeout expirar, define o erro
+  setError('Credenciais inválidas');
+  setLoading(false);
+}, 30000); // 30000 milissegundos = 30 segundos
+
+  setTimeoutId(newTimeoutId);
 
     try {
       // Faz a requisição POST para o endpoint /login
@@ -27,7 +41,7 @@ export function Login() {
       // const token = response.data.token;
       login(Email, Senha);
 
-     
+      clearTimeout(newTimeoutId); 
     } catch (error) {
       setLoading(false);
       if (error.response && error.response.status === 401) {
@@ -38,6 +52,12 @@ export function Login() {
       console.error('Erro no login:', error);
     }
   };
+ // Para atualizar a página após um erro
+  useEffect(() => {
+    if (error) {
+      window.location.reload(alert("Credênciais Invalidas")); 
+    }
+  }, [error]);
 
   useEffect(()=>{  
     if(user != null){

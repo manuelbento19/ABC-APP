@@ -14,7 +14,6 @@ import { UserDashboard } from '../pages/UserDashboard';
 import { ProfileEdit } from "../pages/Editprofile";
 import { ServicesPage } from "../pages/ServicePage";
 import { Beneficios } from "../pages/Beneficios";
-import { AuthProvider } from "../pages/Contexts/AuthContext";
 
 function AppRoutes() {
     return( 
@@ -27,7 +26,7 @@ function AppRoutes() {
                 <Route path="/faqs" element={ <Faqs/> }> </Route>
                 <Route path="/register" element={ <Register /> }> </Route>
                 <Route path="/login" element={ < Login /> }> </Route>
-                <Route path="/userpage" element={ <AuthProvider> < UserPage /> </AuthProvider>}> </Route>
+                <Route path="/userpage" element={ < UserPage />}> </Route>
                 <Route path="/profile" element={ < UserProfile /> }> </Route>
                 <Route path="/connections" element={ < ConnectionsPage /> }> </Route>
                 <Route path="/notification" element={ < NotificationsPage /> }> </Route>

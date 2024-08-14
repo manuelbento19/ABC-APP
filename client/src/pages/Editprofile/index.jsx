@@ -1,238 +1,435 @@
-import React, { useState } from 'react';
-import { PrincipalPage } from '../../layout/principalPage';
-import areasJSON from '../../JSON/areas.json';
-import provinciasJSON from '../../JSON/provincias.json';
-
-const areas = areasJSON.areas; 
-const provincias = provinciasJSON.provincias;
-
-const SuccessDialog = ({ message, onClose }) => (
-  <div className="fixed inset-0 flex items-center justify-center z-10">
-    <div className="bg-white p-4 shadow-lg rounded-md">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-green-600">Sucesso!</h3>
-      </div>
-      <p className="text-gray-600">{message}</p>
-      <div className='mt-2'>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
-          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 1a9 9 0 110 18a9 9 0 010-18zM5.707 5.293a1 1 0 011.414 0L10 8.586l2.879-2.879a1 1 0 111.414 1.414L11.414 10l2.879 2.879a1 1 0 11-1.414 1.414L10 11.414l-2.879 2.879a1 1 0 01-1.414-1.414L8.586 10 5.707 7.121a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const ErrorDialog = ({ message, onClose }) => (
-  <div className="fixed inset-0 flex items-center justify-center z-10">
-    <div className="bg-white p-4 shadow-lg rounded-md">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-red-600">Erro!</h3>
-      </div>
-      <p className="text-gray-600">{message}</p>
-      <div className='mt-2'>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 focus:outline-none">
-          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 1a9 9 0 110 18a9 9 0 010-18zM5.707 5.293a1 1 0 011.414 0L10 8.586l2.879-2.879a1 1 0 111.414 1.414L11.414 10l2.879 2.879a1 1 0 11-1.414 1.414L10 11.414l-2.879 2.879a1 1 0 01-1.414-1.414L8.586 10 5.707 7.121a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-);
+import React, { useState, useContext, useEffect } from "react";
+import { AuthContext } from "../../context/AuthContext"; // Importe o contexto de autenticação
+import { useNavigate } from "react-router-dom";
+import { Dialog, Transition } from "@headlessui/react";
+import CapaDefault from "../../assets/img/CapaDefoult.jpg";
+import ProfileDefault from "../../assets/img//profileDefoult.png";
 
 export const ProfileEdit = () => {
-  // Dados simulados
-  const [email, setEmail] = useState('user@example.com');
-  const [telefone, setTelefone] = useState('123456789');
-  const [provincia, setProvincia] = useState('Luanda');
-  const [areaAtuacao, setAreaAtuacao] = useState('Tecnologia');
-  const [profileImage, setProfileImage] = useState(null);
-  const [coverImage, setCoverImage] = useState(null);
-  const [titleUser, setTitleUser] = useState('Meu Título');
-  const [nifEmpresa, setNifEmpresa] = useState('123456789');
-  const [nomeEmpresa, setNomeEmpresa] = useState('Minha Empresa');
-  const [nomeRepresentante, setNomeRepresentante] = useState('Representante');
-  const [anoExistencia, setAnoExistencia] = useState('2000');
-  const [bi, setBi] = useState('BI123456');
-  const [nomeEmpreendedor, setNomeEmpreendedor] = useState('Empreendedor');
-  const [dataNascimento, setDataNascimento] = useState('2000-01-01');
-  const [genero, setGenero] = useState('Masculino');
-  const [userType, setUserType] = useState('empresa');
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState('');
-  const [editing, setEditing] = useState(false);
+  const { user, setUser, userType } = useContext(AuthContext); // Acesse o usuário e as funções do contexto
+  const navigate = useNavigate(); // Adiciona o hook useNavigate para redirecionamento
+  const [formData, setFormData] = useState({}); // Inicializa formData como um objeto vazio
 
-  const handleSubmit = (event) => {
+  const [isOpen, setIsOpen] = useState(false); // Estado para o modal de mensagem
+  const [message, setMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false); // Adiciona o estado para mostrar a senha
+  const dateString = "1952-09-30T23:00:00.000Z"; // String de data no formato ISO 8601
+  const date = new Date(dateString); // Cria um objeto Date a partir da string
+  const formattedDate = date.toISOString().split("T")[0]; // Formata a data para "yyyy-MM-dd"
+
+  // Função para atualizar o estado com os dados do formulário
+  const handleChange = (event) => {
+    setFormData({
+      ...formData,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  // Função para enviar os dados para a API
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
     try {
-      // Simula a atualização dos dados
-      setSuccessDialogOpen(true);
-      setDialogMessage('Perfil atualizado com sucesso!');
-      setEditing(false);
+      // Chame sua API para atualizar os dados do usuário
+      const response = await fetch(
+        `http://localhost:3001/usuarios/${user.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`, // Utilize o token de autenticação
+          },
+          body: JSON.stringify({
+            ...formData,
+            tipo: user.tipo, // Inclua o tipo do usuário
+            // Inclua os IDs relevantes para Empresa e Empreendedor, se aplicável
+            ...(user.company && { companyID: user.company.id }),
+            ...(user.entrepreneur && { entrepreneurID: user.entrepreneur.id }),
+              DataNascimento: formData.DataNascimento,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUser(updatedUser); // Atualize o estado do usuário no AuthContext
+        setFormData((prevFormData) => {
+          return {
+            // Preencha com os dados do usuário atual
+            Email: updatedUser.Email,
+            Endereco: updatedUser.Endereco,
+            Telefone: updatedUser.Telefone,
+            AreaAtuacao: updatedUser.AreaAtuacao,
+            Provincia: updatedUser.Provincia,
+            Senha: updatedUser.Senha, // Atualiza a Senha no formData
+            // Campos específicos para Empresa ou Empreendedor
+            ...(userType === "empresa" && {
+              NomeRepresentante: updatedUser.company?.NomeRepresentante,
+              NomeEmpresa: updatedUser.company?.NomeEmpresa,
+              NIF: updatedUser.company?.NIF,
+              AnosDeExistencia: updatedUser.company?.AnosDeExistencia,
+            }),
+            ...(userType === "empreendedor" && {
+              Nome: updatedUser.entrepreneur?.Nome,
+              Genero: updatedUser.entrepreneur?.Genero,
+              DataNascimento: updatedUser.entrepreneur?.DataNascimento,
+              BI: updatedUser.entrepreneur?.BI,
+            }),
+          };
+        });
+        setMessage({
+          type: "success",
+          text: "Perfil atualizado com sucesso!",
+        }); // Define a mensagem de sucesso
+        setIsOpen(true); // Abre o modal de mensagem
+      } else {
+        // Trate o erro da API
+        const errorData = await response.json();
+        setMessage({
+          type: "error",
+          text: errorData.error || "Erro ao atualizar o perfil.",
+        }); // Define a mensagem de erro
+        setIsOpen(true); // Abre o modal de mensagem
+      }
     } catch (error) {
-      setErrorDialogOpen(true);
-      setDialogMessage('Erro ao atualizar perfil. Por favor, tente novamente.');
-      console.error('Erro ao atualizar perfil: ', error);
+      // Trate o erro
+      setMessage({
+        type: "error",
+        text: "Erro ao atualizar o perfil. Tente novamente mais tarde.",
+      }); // Define a mensagem de erro
+      setIsOpen(true); // Abre o modal de mensagem
     }
   };
 
-  const handleCloseSuccessDialog = () => {
-    setSuccessDialogOpen(false);
-  };
-
-  const handleCloseErrorDialog = () => {
-    setErrorDialogOpen(false);
-  };
-
-  const handleCancelClick = () => {
-    setEditing(false);
-    // Idealmente, você reverteria as alterações aqui se necessário
-  };
-
-  const handleProfileImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setProfileImage(URL.createObjectURL(file));
+  const closeModal = () => {
+    setIsOpen(false);
+    // Redireciona para a página de perfil apenas se a atualização for bem-sucedida
+    if (message && message.type === "success") {
+      navigate("/userpage");
     }
   };
 
-  const handleCoverImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setCoverImage(URL.createObjectURL(file));
+  // Carregue os dados do usuário quando o componente for montado
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken && user === null) {
+      // Fazer uma requisição para obter as informações do usuário
+      fetch(`http://localhost:3001/usuarios/`, {
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Erro ao obter informações do usuário.");
+          }
+        })
+        .then((data) => {
+          setUser(data);
+          setFormData((prevFormData) => {
+            return {
+              // Preencha com os dados do usuário atual
+              Email: data.Email,
+              Endereco: data.Endereco,
+              Telefone: data.Telefone,
+              AreaAtuacao: data.AreaAtuacao,
+              Provincia: data.Provincia,
+              Senha: data.Senha, // Inclui a senha atual no formData
+              // Campos específicos para Empresa ou Empreendedor
+              ...(userType === "empresa" && {
+                NomeRepresentante: data.company?.NomeRepresentante,
+                NomeEmpresa: data.company?.NomeEmpresa,
+                NIF: data.company?.NIF,
+                AnosDeExistencia: data.company?.AnosDeExistencia,
+              }),
+              ...(userType === "empreendedor" && {
+                Nome: data.entrepreneur?.Nome,
+                Genero: data.entrepreneur?.Genero,
+                DataNascimento: data.entrepreneur?.DataNascimento,
+                BI: data.entrepreneur?.BI,
+              }),
+            };
+          });
+        })
+        .catch((error) => {
+          console.error("Erro ao obter informações do usuário:", error);
+          // Tratar o erro, por exemplo, exibir uma mensagem de erro
+        });
     }
-  };
+  }, []); // Array vazio como dependência para executar apenas na primeira renderização
 
-  return (
-    <PrincipalPage>
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-semibold mb-4">Editar Perfil</h1>
-        <form onSubmit={handleSubmit} className="bg-gray-900 p-6 rounded-md shadow-md">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="relative mb-4">
-              <label htmlFor="profileImage" className="block text-sm font-medium text-white">Imagem de Perfil</label>
-              {profileImage && <img src={profileImage} alt="Profile" className="w-full h-40 object-cover rounded-md" />}
-              <input type="file" id="profileImage" accept="image/*" onChange={handleProfileImageChange} className="absolute bottom-2 right-2 z-10" />
-            </div>
-            <div className="relative mb-4">
-              <label htmlFor="coverImage" className="block text-sm font-medium text-white">Imagem de Capa</label>
-              {coverImage && <img src={coverImage} alt="Cover" className="w-full h-40 object-cover rounded-md" />}
-              <input type="file" id="coverImage" accept="image/*" onChange={handleCoverImageChange} className="absolute bottom-2 right-2 z-10" />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="titleUser" className="block text-sm font-medium text-white">Título</label>
+  // Atualize o estado do formulário quando o usuário mudar
+  useEffect(() => {
+    if (user) {
+      setFormData((prevFormData) => {
+        return {
+          // Preencha com os dados do usuário atual
+          Email: user.Email,
+          Endereco: user.Endereco,
+          Telefone: user.Telefone,
+          AreaAtuacao: user.AreaAtuacao,
+          Provincia: user.Provincia,
+          Senha: user.Senha, // Inclui a senha atual no formData
+          // Campos específicos para Empresa ou Empreendedor
+          ...(userType === "empresa" && {
+            NomeRepresentante: user.company?.NomeRepresentante,
+            NomeEmpresa: user.company?.NomeEmpresa,
+            NIF: user.company?.NIF,
+            AnosDeExistencia: user.company?.AnosDeExistencia,
+          }),
+          ...(userType === "empreendedor" && {
+            Nome: user.entrepreneur?.Nome,
+            Genero: user.entrepreneur?.Genero,
+            DataNascimento: user.entrepreneur?.DataNascimento,
+            BI: user.entrepreneur?.BI,
+          }),
+        };
+      });
+    }
+  }, [user]); // Dependência user para atualizar o formulário quando o user mudar
+
+  // Renderiza o componente
+  return user ? (
+    <div
+      className="flex min-screen-full flex-1 flex-col justify-center lg:mt-28 align-middle bg-gray-900"
+    >
+      <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-4xl m-auto mx-auto">
+        <h2 className="mt-2 text-center text-2xl font-bold leading-9 tracking-tight text-white">
+          Editar Perfil
+        </h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label
+                htmlFor="Email"
+                className="block text-gray-200 text-sm font-bold mb-2"
+              >
+                Email:
+              </label>
               <input
-                type="text"
-                id="titleUser"
-                value={titleUser}
-                onChange={(e) => setTitleUser(e.target.value)}
-                className="bg-gray-800 text-white p-2 rounded-md w-full"
-                placeholder="Título"
+                type="email"
+                id="Email"
+                name="Email"
+                className="lowercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                value={formData.Email}
+                onChange={handleChange}
+                required
+                readOnly
               />
             </div>
-            {userType === 'empresa' && (
+            <div>
+              <label
+                htmlFor="Endereco"
+                className="block text-gray-200 text-sm font-bold mb-2"
+              >
+                Endereço:
+              </label>
+              <input
+                type="text"
+                id="Endereco"
+                name="Endereco"
+                className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                value={formData.Endereco}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="Telefone"
+                className="block text-gray-200 text-sm font-bold mb-2"
+              >
+                Telefone:
+              </label>
+              <input
+                type="text"
+                id="Telefone"
+                name="Telefone"
+                className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                value={formData.Telefone}
+                onChange={handleChange}
+                required
+                minLength={9}
+                maxLength={9}
+                pattern="[0-9]{9}"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="AreaAtuacao"
+                className="block text-gray-200 text-sm font-bold mb-2"
+              >
+                Área de Atuação:
+              </label>
+              <input
+                type="text"
+                id="AreaAtuacao"
+                name="AreaAtuacao"
+                className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                value={formData.AreaAtuacao}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="Provincia"
+                className="block text-gray-200 text-sm font-bold mb-2"
+              >
+                Província:
+              </label>
+              <input
+                type="text"
+                id="Provincia"
+                name="Provincia"
+                className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                value={formData.Provincia}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            {/* Campos específicos para Empresa ou Empreendedor */}
+            {userType === "empresa" && (
               <>
-                <div className="mb-4">
-                  <label htmlFor="nifEmpresa" className="block text-sm font-medium text-white">NIF da Empresa</label>
+                <div>
+                  <label
+                    htmlFor="NomeRepresentante"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Nome do Representante:
+                  </label>
                   <input
                     type="text"
-                    id="nifEmpresa"
-                    value={nifEmpresa}
-                    onChange={(e) => setNifEmpresa(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="NIF da Empresa"
+                    id="NomeRepresentante"
+                    name="NomeRepresentante"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.NomeRepresentante}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="NomeEmpresa"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Nome da Empresa:
+                  </label>
+                  <input
+                    type="text"
+                    id="NomeEmpresa"
+                    name="NomeEmpresa"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.NomeEmpresa}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="NIF"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    NIF:
+                  </label>
+                  <input
+                    type="text"
+                    id="NIF"
+                    name="NIF"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.NIF}
+                    onChange={handleChange}
+                    required
+                    minLength={9}
+                    maxLength={9}
                     pattern="[0-9]{9}"
-                    title="NIF deve conter 9 dígitos numéricos"
-                    required
+                    readOnly
                   />
                 </div>
-                <div className="mb-4">
-                  <label htmlFor="nomeEmpresa" className="block text-sm font-medium text-white">Nome da Empresa</label>
-                  <input
-                    type="text"
-                    id="nomeEmpresa"
-                    value={nomeEmpresa}
-                    onChange={(e) => setNomeEmpresa(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="Nome da Empresa"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="nomeRepresentante" className="block text-sm font-medium text-white">Nome do Representante</label>
-                  <input
-                    type="text"
-                    id="nomeRepresentante"
-                    value={nomeRepresentante}
-                    onChange={(e) => setNomeRepresentante(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="Nome do Representante"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="anoExistencia" className="block text-sm font-medium text-white">Ano de Existência</label>
+                <div>
+                  <label
+                    htmlFor="AnosDeExistencia"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Anos de Existência:
+                  </label>
                   <input
                     type="number"
-                    id="anoExistencia"
-                    value={anoExistencia}
-                    onChange={(e) => setAnoExistencia(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="Ano de Existência"
-                    min="1900"
-                    max={new Date().getFullYear()}
+                    id="AnosDeExistencia"
+                    name="AnosDeExistencia"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.AnosDeExistencia}
+                    onChange={handleChange}
                     required
+                    min={0}
+                    maxLength={50}
+                    minLength={0}
+                    pattern="[0-9]"
                   />
+                </div>
+                <div>
+                  <label
+                    htmlFor="Senha"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Senha:
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="Senha"
+                    name="Senha"
+                    className=" w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.Senha}
+                    onChange={handleChange}
+                    required
+                    minLength={8}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                    title="A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial (@$!%*?&)"
+                  />
+                  <span
+                    className="ml-2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "Ocultar Senha" : "Mostrar Senha"}
+                  </span>
                 </div>
               </>
             )}
-            {userType === 'empreendedor' && (
+            {userType === "empreendedor" && (
               <>
-                <div className="mb-4">
-                  <label htmlFor="bi" className="block text-sm font-medium text-white">BI</label>
+                <div>
+                  <label
+                    htmlFor="Nome"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Nome:
+                  </label>
                   <input
                     type="text"
-                    id="bi"
-                    value={bi}
-                    onChange={(e) => setBi(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="BI"
+                    id="Nome"
+                    name="Nome"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.Nome}
+                    onChange={handleChange}
                     required
                   />
                 </div>
-                <div className="mb-4">
-                  <label htmlFor="nomeEmpreendedor" className="block text-sm font-medium text-white">Nome do Empreendedor</label>
-                  <input
-                    type="text"
-                    id="nomeEmpreendedor"
-                    value={nomeEmpreendedor}
-                    onChange={(e) => setNomeEmpreendedor(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    placeholder="Nome do Empreendedor"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="dataNascimento" className="block text-sm font-medium text-white">Data de Nascimento</label>
-                  <input
-                    type="date"
-                    id="dataNascimento"
-                    value={dataNascimento}
-                    onChange={(e) => setDataNascimento(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="genero" className="block text-sm font-medium text-white">Gênero</label>
+                <div>
+                  <label
+                    htmlFor="Genero"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Género:
+                  </label>
                   <select
-                    id="genero"
-                    value={genero}
-                    onChange={(e) => setGenero(e.target.value)}
-                    className="bg-gray-800 text-white p-2 rounded-md w-full"
+                    type="text"
+                    id="Genero"
+                    name="Genero"
+                    className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.Genero}
+                    onChange={handleChange}
                     required
                   >
                     <option value="">Selecione</option>
@@ -241,23 +438,160 @@ export const ProfileEdit = () => {
                     <option value="Outro">Outro</option>
                   </select>
                 </div>
+                <div>
+                  <label
+                    htmlFor="DataNascimento"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Data de Nascimento:
+                  </label>
+                  <input
+                    type="date"
+                    id="DataNascimento"
+                    name="DataNascimento"
+                    className="lowercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={
+                      formData.DataNascimento
+                        ? new Date(formData.DataNascimento)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    } // Formata a data
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="BI"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    BI:
+                  </label>
+                  <input
+                    type="text"
+                    id="BI"
+                    name="BI"
+                    className="uppercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.BI}
+                    onChange={handleChange}
+                    required
+                    minLength={14}
+                    maxLength={14}
+                    pattern="^\d{9}[A-Z]{2}\d{3}$"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="Senha"
+                    className="block text-gray-200 text-sm font-bold mb-2"
+                  >
+                    Senha:
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="Senha"
+                    name="Senha"
+                    className=" w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
+                    value={formData.Senha}
+                    onChange={handleChange}
+                    required
+                    minLength={8}
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                    title="A senha deve conter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial (@$!%*?&)"
+                  />
+                  <span
+                    className="ml-2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? "Ocultar Senha" : "Mostrar Senha"}
+                  </span>
+                </div>
               </>
             )}
-            <div className="flex justify-end gap-4 mb-4">
-              {editing ? (
-                <>
-                  <button type="button" onClick={handleCancelClick} className="bg-gray-600 text-white px-4 py-2 rounded-md">Cancelar</button>
-                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md">Salvar</button>
-                </>
-              ) : (
-                <button type="button" onClick={() => setEditing(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md">Editar</button>
-              )}
-            </div>
+          </div>
+          {/* Adicionar campos para Website e Redes Sociais, se necessário */}
+          <div className="flex justify-end">
+            <button
+              onClick={closeModal}
+              className="col-span-1 mt-4 bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="col-span-1 mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Salvar Alterações
+            </button>
           </div>
         </form>
-        {successDialogOpen && <SuccessDialog message={dialogMessage} onClose={handleCloseSuccessDialog} />}
-        {errorDialogOpen && <ErrorDialog message={dialogMessage} onClose={handleCloseErrorDialog} />}
+        {/* Modal de Mensagem */}
+        <Transition appear show={isOpen} as={React.Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-10 overflow-y-auto"
+            onClose={closeModal}
+          >
+            <div className="min-h-screen px-4 text-center">
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-out duration-900"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-900"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <div className="fixed inset-0 bg-black bg-opacity-50" />
+              </Transition.Child>
+
+              <span
+                className="inline-block h-screen align-middle"
+                aria-hidden="true"
+              >
+                ​
+              </span>
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-out duration-900"
+                enterFrom="opacity-0 translate-y-4"
+                enterTo="opacity-100 translate-y-0"
+                leave="ease-in duration-900"
+                leaveFrom="opacity-100 translate-y-0"
+                leaveTo="opacity-0 translate-y-4"
+              >
+                <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Informação
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      {message ? message.text : ""}
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded-md hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
+                      onClick={closeModal}
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition>
       </div>
-    </PrincipalPage>
+    </div>
+  ) : (
+    <p>Usuario Não encontrado</p>
   );
 };
