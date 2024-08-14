@@ -31,24 +31,41 @@ export const ProfileEdit = () => {
 
     try {
       // Chame sua API para atualizar os dados do usuário
-      const response = await fetch(
-        `http://localhost:3001/usuarios/${user.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`, // Utilize o token de autenticação
-          },
-          body: JSON.stringify({
-            ...formData,
-            tipo: user.tipo, // Inclua o tipo do usuário
-            // Inclua os IDs relevantes para Empresa e Empreendedor, se aplicável
+      // const response = await fetch(
+      //   `http://localhost:3001/usuarios/${user.id}`,
+      //   {
+      //     method: "PUT",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       Authorization: `Bearer ${user.token}`, // Utilize o token de autenticação
+      //     },
+      //     body: JSON.stringify({
+      //       ...formData,
+      //       tipo: user.tipo, // Inclua o tipo do usuário
+      //       // Inclua os IDs relevantes para Empresa e Empreendedor, se aplicável
+      //       ...(user.company && { companyID: user.company.id }),
+      //       ...(user.entrepreneur && { entrepreneurID: user.entrepreneur.id }),
+      //         DataNascimento: formData.DataNascimento,
+      //     }),
+      //   }
+      // );
+
+
+      try {
+        const response = await axios.post(`http://localhost:3001/usuarios/${user?.id}`, {
+          ...formData,
+            tipo: user?.tipo, 
             ...(user.company && { companyID: user.company.id }),
             ...(user.entrepreneur && { entrepreneurID: user.entrepreneur.id }),
               DataNascimento: formData.DataNascimento,
-          }),
-        }
-      );
+        });
+        
+        console.log("sucesso: ", response.data);
+        
+      } catch (error) {
+        console.error("Erro ao logar:", error);
+        // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+      }
 
       if (response.ok) {
         const updatedUser = await response.json();
@@ -213,7 +230,7 @@ export const ProfileEdit = () => {
                 id="Email"
                 name="Email"
                 className="lowercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                value={formData.Email}
+                value={formData?.Email}
                 onChange={handleChange}
                 required
                 readOnly
@@ -231,7 +248,7 @@ export const ProfileEdit = () => {
                 id="Endereco"
                 name="Endereco"
                 className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                value={formData.Endereco}
+                value={formData?.Endereco}
                 onChange={handleChange}
                 required
               />
@@ -248,7 +265,7 @@ export const ProfileEdit = () => {
                 id="Telefone"
                 name="Telefone"
                 className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                value={formData.Telefone}
+                value={formData?.Telefone}
                 onChange={handleChange}
                 required
                 minLength={9}
@@ -268,7 +285,7 @@ export const ProfileEdit = () => {
                 id="AreaAtuacao"
                 name="AreaAtuacao"
                 className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                value={formData.AreaAtuacao}
+                value={formData?.AreaAtuacao}
                 onChange={handleChange}
                 required
               />
@@ -285,7 +302,7 @@ export const ProfileEdit = () => {
                 id="Provincia"
                 name="Provincia"
                 className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                value={formData.Provincia}
+                value={formData?.Provincia}
                 onChange={handleChange}
                 required
               />
@@ -305,7 +322,7 @@ export const ProfileEdit = () => {
                     id="NomeRepresentante"
                     name="NomeRepresentante"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.NomeRepresentante}
+                    value={formData?.NomeRepresentante}
                     onChange={handleChange}
                     required
                   />
@@ -322,7 +339,7 @@ export const ProfileEdit = () => {
                     id="NomeEmpresa"
                     name="NomeEmpresa"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.NomeEmpresa}
+                    value={formData?.NomeEmpresa}
                     onChange={handleChange}
                     required
                   />
@@ -339,7 +356,7 @@ export const ProfileEdit = () => {
                     id="NIF"
                     name="NIF"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.NIF}
+                    value={formData?.NIF}
                     onChange={handleChange}
                     required
                     minLength={9}
@@ -360,7 +377,7 @@ export const ProfileEdit = () => {
                     id="AnosDeExistencia"
                     name="AnosDeExistencia"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.AnosDeExistencia}
+                    value={formData?.AnosDeExistencia}
                     onChange={handleChange}
                     required
                     min={0}
@@ -381,7 +398,7 @@ export const ProfileEdit = () => {
                     id="Senha"
                     name="Senha"
                     className=" w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.Senha}
+                    value={formData?.Senha}
                     onChange={handleChange}
                     required
                     minLength={8}
@@ -411,7 +428,7 @@ export const ProfileEdit = () => {
                     id="Nome"
                     name="Nome"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.Nome}
+                    value={formData?.Nome}
                     onChange={handleChange}
                     required
                   />
@@ -428,7 +445,7 @@ export const ProfileEdit = () => {
                     id="Genero"
                     name="Genero"
                     className="capitalize w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.Genero}
+                    value={formData?.Genero}
                     onChange={handleChange}
                     required
                   >
@@ -451,8 +468,8 @@ export const ProfileEdit = () => {
                     name="DataNascimento"
                     className="lowercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
                     value={
-                      formData.DataNascimento
-                        ? new Date(formData.DataNascimento)
+                      formData?.DataNascimento
+                        ? new Date(formData?.DataNascimento)
                             .toISOString()
                             .split("T")[0]
                         : ""
@@ -473,7 +490,7 @@ export const ProfileEdit = () => {
                     id="BI"
                     name="BI"
                     className="uppercase w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.BI}
+                    value={formData?.BI}
                     onChange={handleChange}
                     required
                     minLength={14}
@@ -494,7 +511,7 @@ export const ProfileEdit = () => {
                     id="Senha"
                     name="Senha"
                     className=" w-full p-2 rounded bg-gray-700 text-white focus:ring-transparent"
-                    value={formData.Senha}
+                    value={formData?.Senha}
                     onChange={handleChange}
                     required
                     minLength={8}
