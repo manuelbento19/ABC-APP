@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css'; // Importação dos estilos específicos
 import { Logoform } from '../../components/logo';
-import axios from 'axios';
 import {AuthContext}  from '../../context/AuthContext'
 
 export function Login() {

@@ -15,7 +15,7 @@ const validBIs = biJSON.bis;
 
 
 export function Register() {
-  const [tipoUsuario, setTipoUsuario] = useState(null); // Define o tipo de usuário como empresa por padrão
+  const [tipoUsuario, setTipoUsuario] = useState("empresa"); // Define o tipo de usuário como empresa por padrão
   const [formData, setFormData] = useState({
     // Campos para Empresa
     NomeRepresentante: '',
@@ -58,6 +58,7 @@ export function Register() {
         return;
         }
     } else if (tipoUsuario ==="empreendedor"){  
+      
       // Validação do BI
        if (!validBIs.includes(formData.BI)) {
          setMessage({ type: 'error', text: 'BI inválido!' });
@@ -67,9 +68,9 @@ export function Register() {
         setMessage({ type: 'error', text: 'NIF/BI inválidos' });
         setIsOpen(true);
         return; 
-       }
+       }    
     
-    
+       console.log("Tipo de usuario ", tipoUsuario);
 
     try {
       const response = await fetch('http://localhost:3001/register', {
