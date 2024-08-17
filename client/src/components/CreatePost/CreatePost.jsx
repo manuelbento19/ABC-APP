@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext} from 'react';
 import CarexLogo from "../../assets/img/carex_logo.png";
 import { FaImage, FaCalendarAlt, FaRocket, FaUsers } from 'react-icons/fa'; 
-import {AuthContext}  from '../../context/AuthContext'
+import {AuthContext}  from '../../context/AuthContext';
+import axios from 'axios';
+
 
 
 export function CreatePost() {
@@ -27,6 +29,7 @@ export function CreatePost() {
   };
 
   const handleChangeMedia = (event) => {
+    console.log("media", event.target.files[0]);
     setPostMedia(event.target.files[0]);
     setIsPublishButtonDisabled(!(postContent.trim() || postMedia));
   };
@@ -38,16 +41,96 @@ export function CreatePost() {
   const handleCloseModal = () => {
     setShowModal(false);
   };
+const {user} = useContext(AuthContext);
 
-  const {user} = useContext(AuthContext);
   const createPost = async(conteudo, foto)=>{
     try {
-      const response = await axios.post("http://localhost:3001/postagens", {
-        Conteudo: conteudo,
-        Data: new Data(),
-        UsuarioID: user?.id,
-        Foto: foto 
-      });
+      const token = localStorage.getItem('token'); // Make sure 'token' is the correct key used to store the token
+
+      // Make the Axios POST request with the token in the Authorization header
+      const response = await axios.post("http://localhost:3001/postagens", 
+        {
+          Conteudo: conteudo,
+          Foto: foto 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      console.log("sucesso: ", response.data);
+      
+    } catch (error) {
+      console.error("Erro ao logar:", error);
+      // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+    }
+  }
+
+  const createEventos = async(nome, data, time, local, description)=>{
+    try {
+      const token = localStorage.getItem('token'); // Make sure 'token' is the correct key used to store the token
+
+      // Make the Axios POST request with the token in the Authorization header
+      const response = await axios.post("http://localhost:3001/eventos", 
+        {
+          Nome: nome, Data: data, Time: time, Local: local,  UsuarioID: user?.id, Description: description
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      console.log("sucesso: ", response.data);
+      
+    } catch (error) {
+      console.error("Erro ao logar:", error);
+      // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+    }
+  }
+
+  const createBusinessRoom = async(Titulo, Descricao, Link, Anexos)=>{
+    try {
+      const token = localStorage.getItem('token'); // Make sure 'token' is the correct key used to store the token
+
+      // Make the Axios POST request with the token in the Authorization header
+      const response = await axios.post("http://localhost:3001/salas", 
+        {
+          Titulo, Descricao, Link, Anexos, UsuarioID : user?.id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      console.log("sucesso: ", response.data);
+      
+    } catch (error) {
+      console.error("Erro ao logar:", error);
+      // Tratar o erro (por exemplo, exibir uma mensagem de erro)
+    }
+  }
+
+  const createStartup = async(Name, Description)=>{
+    try {
+      const token = localStorage.getItem('token'); // Make sure 'token' is the correct key used to store the token
+
+      // Make the Axios POST request with the token in the Authorization header
+      const response = await axios.post("http://localhost:3001/startup", 
+        {
+          Name, Description, UsuarioID : user?.id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       
       console.log("sucesso: ", response.data);
       
@@ -59,8 +142,16 @@ export function CreatePost() {
 
   const handleSubmit = (event) => {
     event.preventDefault(); //prevenir reload  
-    
-   createPost(postContent, postMedia); //criar post
+    if(activeTab === 'post'){
+      createPost(postContent, postMedia); //criar post
+    }else if(activeTab === 'event'){
+      createEventos(eventName, eventDate, eventTime, eventLocation, eventDescription);
+    }else if (activeTab === 'startup'){
+      createStartup(startupName, startupDescription)
+    }else if( activeTab ===  'businessRoom'){
+      createBusinessRoom(businessRoomTitle,businessRoomDescription, zoomLink, postMedia);
+      
+    }
     
     handleCloseModal(); // Fechar o formulario
   };
@@ -110,7 +201,7 @@ export function CreatePost() {
                 onClick={() => handleOpenModal('startup')}
               >
                 <FaRocket className="text-white ml-2" />
-                <span className='ml-1 mr-1 text-xs '>StarUp</span>
+                <span className='ml-1 mr-1 text-xs '>StartUp</span>
               </div>
               <div 
                 className="bg-purple-500 hover:bg-purple-600 text-white w-auto h-8 rounded flex items-center justify-center focus:outline-none focus:shadow-outline" 
@@ -365,7 +456,7 @@ export function CreatePost() {
                     onChange={(e) => setEventDescription(e.target.value)}
                   />
                 </div>
-                <div className="mt-3">
+                {/* <div className="mt-3">
                   <label htmlFor="postMedia" className="text-gray-600 block mb-1 font-medium">Imagem/Vídeo:</label>
                   <input
                     type="file"
@@ -383,7 +474,7 @@ export function CreatePost() {
                       )}
                     </div>
                   )}
-                </div>
+                </div> */}
               </div>
             )}
 
