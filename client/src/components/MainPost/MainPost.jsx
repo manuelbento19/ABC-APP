@@ -38,31 +38,41 @@ export function MainPost({ filter, token }) {
                 }
             };
             fetchUserData();
+
+           
+
         }
 
         const fetchPosts = async () => {
-            try {
-                const response = await axios.get('http://localhost:3001/postagens', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                setPosts(response.data.map(post => ({
-                    ...post,
-                    author: {
-                        // ...post.author, 
-                        name: post.author ? post.author.name : 'Nome do Autor', // Verifica se post.author existe
-                        tipo: post.author ? post.author.tipo : 'Tipo Desconhecido' // Verifica se post.author existe
-                    }
-                })));
-            } catch (error) {
-                console.error('Erro ao obter posts:', error);
-                // Trate o erro (ex: mostre uma mensagem de erro ao usuário)
-            } finally {
-                setIsLoading(false); 
+            const token = localStorage.getItem('token');
+          
+            if (!token) {
+              console.error("No token found. Please log in.");
+              return;
             }
-        };
+          
+            try {
+              const response = await axios.get("http://localhost:3001/posts", {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+          
+              console.log(response.data); // Handle the response data
+            } catch (error) {
+              if (error.response && error.response.status === 401) {
+                console.error("Unauthorized: Token might be invalid or expired.");
+                // Optionally redirect to login
+              } else {
+                console.error("Error fetching posts:", error);
+              }
+            }finally{
+                setIsLoading(false)
+            }
+          };
+          
+          fetchPosts();
+          
 
         fetchPosts(); 
     }, [token]); // Adiciona o token JWT como dependência para refazer a requisição se o token mudar

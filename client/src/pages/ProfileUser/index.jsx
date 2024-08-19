@@ -22,6 +22,7 @@ export function UserProfile() {
     setShowDropdown(!showDropdown);
   };
 
+  const token = localStorage.getItem('token'); 
 
   return (
     <PrincipalPage>
@@ -79,7 +80,7 @@ export function UserProfile() {
           {window.location.pathname === '/views' && <UserDashboard />}
           {window.location.pathname === '/services' && <ServicesPage />}
 
-          <MainPost filter={activeFilter} /> 
+          <MainPost filter={activeFilter} token={token}/> 
         </div>
       </div>
     </PrincipalPage>

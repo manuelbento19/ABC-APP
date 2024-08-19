@@ -4,19 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import CapaDefault from "../../assets/img/CapaDefoult.jpg";
 import ProfileDefault from "../../assets/img//profileDefoult.png";
+import axios from "axios";
 
 export const ProfileEdit = () => {
-  const { user, setUser, userType } = useContext(AuthContext); // Acesse o usuário e as funções do contexto
+  const { user,getUser, setUser, userType } = useContext(AuthContext); // Acesse o usuário e as funções do contexto
   const navigate = useNavigate(); // Adiciona o hook useNavigate para redirecionamento
   const [formData, setFormData] = useState({}); // Inicializa formData como um objeto vazio
-
   const [isOpen, setIsOpen] = useState(false); // Estado para o modal de mensagem
   const [message, setMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false); // Adiciona o estado para mostrar a senha
-  const dateString = "1952-09-30T23:00:00.000Z"; // String de data no formato ISO 8601
-  const date = new Date(dateString); // Cria um objeto Date a partir da string
-  const formattedDate = date.toISOString().split("T")[0]; // Formata a data para "yyyy-MM-dd"
-
+  
   // Função para atualizar o estado com os dados do formulário
   const handleChange = (event) => {
     setFormData({
@@ -28,95 +25,65 @@ export const ProfileEdit = () => {
   // Função para enviar os dados para a API
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
+    console.log("user?.id", user?.id);
+  
     try {
-      // Chame sua API para atualizar os dados do usuário
-      // const response = await fetch(
-      //   `http://localhost:3001/usuarios/${user.id}`,
-      //   {
-      //     method: "PUT",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${user.token}`, // Utilize o token de autenticação
-      //     },
-      //     body: JSON.stringify({
-      //       ...formData,
-      //       tipo: user.tipo, // Inclua o tipo do usuário
-      //       // Inclua os IDs relevantes para Empresa e Empreendedor, se aplicável
-      //       ...(user.company && { companyID: user.company.id }),
-      //       ...(user.entrepreneur && { entrepreneurID: user.entrepreneur.id }),
-      //         DataNascimento: formData.DataNascimento,
-      //     }),
-      //   }
-      // );
-
-
-      try {
-        const response = await axios.post(`http://localhost:3001/usuarios/${user?.id}`, {
-          ...formData,
-            tipo: user?.tipo, 
-            ...(user.company && { companyID: user.company.id }),
-            ...(user.entrepreneur && { entrepreneurID: user.entrepreneur.id }),
-              DataNascimento: formData.DataNascimento,
-        });
-        
-        console.log("sucesso: ", response.data);
-        
-      } catch (error) {
-        console.error("Erro ao logar:", error);
-        // Tratar o erro (por exemplo, exibir uma mensagem de erro)
-      }
-
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser); // Atualize o estado do usuário no AuthContext
-        setFormData((prevFormData) => {
-          return {
-            // Preencha com os dados do usuário atual
-            Email: updatedUser.Email,
-            Endereco: updatedUser.Endereco,
-            Telefone: updatedUser.Telefone,
-            AreaAtuacao: updatedUser.AreaAtuacao,
-            Provincia: updatedUser.Provincia,
-            Senha: updatedUser.Senha, // Atualiza a Senha no formData
-            // Campos específicos para Empresa ou Empreendedor
-            ...(userType === "empresa" && {
-              NomeRepresentante: updatedUser.company?.NomeRepresentante,
-              NomeEmpresa: updatedUser.company?.NomeEmpresa,
-              NIF: updatedUser.company?.NIF,
-              AnosDeExistencia: updatedUser.company?.AnosDeExistencia,
-            }),
-            ...(userType === "empreendedor" && {
-              Nome: updatedUser.entrepreneur?.Nome,
-              Genero: updatedUser.entrepreneur?.Genero,
-              DataNascimento: updatedUser.entrepreneur?.DataNascimento,
-              BI: updatedUser.entrepreneur?.BI,
-            }),
-          };
-        });
-        setMessage({
-          type: "success",
-          text: "Perfil atualizado com sucesso!",
-        }); // Define a mensagem de sucesso
-        setIsOpen(true); // Abre o modal de mensagem
-      } else {
-        // Trate o erro da API
-        const errorData = await response.json();
-        setMessage({
-          type: "error",
-          text: errorData.error || "Erro ao atualizar o perfil.",
-        }); // Define a mensagem de erro
-        setIsOpen(true); // Abre o modal de mensagem
-      }
+      const response = await axios.put(`http://localhost:3001/usuarios/${user?.id}`, {
+        ...formData,
+        tipo: user?.tipo, 
+        ...(user?.company && { companyID: user?.company.id }),
+        ...(user?.entrepreneur && { entrepreneurID: user?.entrepreneur.id }),
+        DataNascimento: formData.DataNascimento,
+      });
+  
+      console.log("sucesso: ", response.data);
+      console.log("Response Status:", response.status);
+  
+      // // Directly using response.data as it is already parsed
+      const updatedUser = response?.data;
+      setUser(updatedUser); // Update user in AuthContext
+      console.log("Response :",updatedUser); // Update user in AuthContext
+  
+      // setFormData({
+      //   Email: updatedUser.Email,
+      //   Endereco: updatedUser.Endereco,
+      //   Telefone: updatedUser.Telefone,
+      //   AreaAtuacao: updatedUser.AreaAtuacao,
+      //   Provincia: updatedUser.Provincia,
+      //   Senha: updatedUser.Senha, // Update the password in formData
+      //   ...(userType === "empresa" && {
+      //     NomeRepresentante: updatedUser.company?.NomeRepresentante,
+      //     NomeEmpresa: updatedUser.company?.NomeEmpresa,
+      //     NIF: updatedUser.company?.NIF,
+      //     AnosDeExistencia: updatedUser.company?.AnosDeExistencia,
+      //   }),
+      //   ...(userType === "empreendedor" && {
+      //     Nome: updatedUser.entrepreneur?.Nome,
+      //     Genero: updatedUser.entrepreneur?.Genero,
+      //     DataNascimento: updatedUser.entrepreneur?.DataNascimento,
+      //     BI: updatedUser.entrepreneur?.BI,
+      //   }),
+      // });
+  
+      setMessage({
+        type: "success",
+        text: "Perfil atualizado com sucesso!",
+      }); // Set success message
+      setIsOpen(true); // Open message modal
+  
     } catch (error) {
-      // Trate o erro
+      console.error("Erro ao atualizar o perfil:", error);
+  
       setMessage({
         type: "error",
         text: "Erro ao atualizar o perfil. Tente novamente mais tarde.",
-      }); // Define a mensagem de erro
-      setIsOpen(true); // Abre o modal de mensagem
+      }); // Set error message
+      setIsOpen(true); // Open message modal
     }
+    console.log("Message", message);
   };
+  
 
   const closeModal = () => {
     setIsOpen(false);
@@ -126,88 +93,42 @@ export const ProfileEdit = () => {
     }
   };
 
-  // Carregue os dados do usuário quando o componente for montado
-  useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    if (storedToken && user === null) {
-      // Fazer uma requisição para obter as informações do usuário
-      fetch(`http://localhost:3001/usuarios/`, {
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error("Erro ao obter informações do usuário.");
-          }
-        })
-        .then((data) => {
-          setUser(data);
-          setFormData((prevFormData) => {
-            return {
-              // Preencha com os dados do usuário atual
-              Email: data.Email,
-              Endereco: data.Endereco,
-              Telefone: data.Telefone,
-              AreaAtuacao: data.AreaAtuacao,
-              Provincia: data.Provincia,
-              Senha: data.Senha, // Inclui a senha atual no formData
-              // Campos específicos para Empresa ou Empreendedor
-              ...(userType === "empresa" && {
-                NomeRepresentante: data.company?.NomeRepresentante,
-                NomeEmpresa: data.company?.NomeEmpresa,
-                NIF: data.company?.NIF,
-                AnosDeExistencia: data.company?.AnosDeExistencia,
-              }),
-              ...(userType === "empreendedor" && {
-                Nome: data.entrepreneur?.Nome,
-                Genero: data.entrepreneur?.Genero,
-                DataNascimento: data.entrepreneur?.DataNascimento,
-                BI: data.entrepreneur?.BI,
-              }),
-            };
-          });
-        })
-        .catch((error) => {
-          console.error("Erro ao obter informações do usuário:", error);
-          // Tratar o erro, por exemplo, exibir uma mensagem de erro
-        });
-    }
-  }, []); // Array vazio como dependência para executar apenas na primeira renderização
+  const fetchUser = async () => {
+    const userData = await getUser(); // Fetch the user data
+    console.log("getUser()", userData); // Log the fetched user data
 
-  // Atualize o estado do formulário quando o usuário mudar
-  useEffect(() => {
-    if (user) {
+    if (userData) {
       setFormData((prevFormData) => {
         return {
-          // Preencha com os dados do usuário atual
-          Email: user.Email,
-          Endereco: user.Endereco,
-          Telefone: user.Telefone,
-          AreaAtuacao: user.AreaAtuacao,
-          Provincia: user.Provincia,
-          Senha: user.Senha, // Inclui a senha atual no formData
-          // Campos específicos para Empresa ou Empreendedor
+          // Fill the form with the current user's data
+          Email: userData?.Email,
+          Endereco: userData?.Endereco,
+          Telefone: userData?.Telefone,
+          AreaAtuacao: userData?.AreaAtuacao,
+          Provincia: userData?.Provincia,
+          Senha: userData?.Senha, // Include the current password in formData
+          // Specific fields for Empresa or Empreendedor
           ...(userType === "empresa" && {
-            NomeRepresentante: user.company?.NomeRepresentante,
-            NomeEmpresa: user.company?.NomeEmpresa,
-            NIF: user.company?.NIF,
-            AnosDeExistencia: user.company?.AnosDeExistencia,
+            NomeRepresentante: userData?.company?.NomeRepresentante,
+            NomeEmpresa: userData?.company?.NomeEmpresa,
+            NIF: userData?.company?.NIF,
+            AnosDeExistencia: userData?.company?.AnosDeExistencia,
           }),
           ...(userType === "empreendedor" && {
-            Nome: user.entrepreneur?.Nome,
-            Genero: user.entrepreneur?.Genero,
-            DataNascimento: user.entrepreneur?.DataNascimento,
-            BI: user.entrepreneur?.BI,
+            Nome: userData?.entrepreneur?.Nome,
+            Genero: userData?.entrepreneur?.Genero,
+            DataNascimento: userData?.entrepreneur?.DataNascimento,
+            BI: userData?.entrepreneur?.BI,
           }),
         };
       });
     }
-  }, [user]); // Dependência user para atualizar o formulário quando o user mudar
-
-  // Renderiza o componente
+  };
+  
+  useEffect(() => {  
+    fetchUser();
+  }, [userType]); 
+ 
   return user ? (
     <div
       className="flex min-screen-full flex-1 flex-col justify-center lg:mt-28 align-middle bg-gray-900"
