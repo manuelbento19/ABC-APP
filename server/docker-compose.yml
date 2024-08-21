@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  database:
+    build: ./docker/mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=resolve
+      - MYSQL_DATABASE=abc_app
+    volumes:
+      - ./data:/var/lib/mysql
