@@ -1,11 +1,10 @@
 import { database } from "../database";
-import { User } from "../models/User";
+import { User } from "../models";
 import { CreateUserDTO } from "../utils/dtos";
 import { QueryBuilder } from "../utils/helper/QueryBuilder";
 
 export class UserService {
-    
-   async create(data: CreateUserDTO) {
+  async create(data: CreateUserDTO) {
     const query = QueryBuilder.toCreate(data);
     const [rows] = await database.query<User[]>(`INSERT INTO Usuario (${query.columns}) VALUES (${query.signals})`,[query.values]);
     return rows
@@ -16,6 +15,11 @@ export class UserService {
     return rows[0];
   }
 
+  async getByEmail(email: string){
+    const [rows] = await database.query<User[]>("SELECT * FROM Usuario WHERE email = ?",[email])
+    return rows[0];
+
+  }
   async getAll() {
     const [rows] = await database.query<User[]>("SELECT * FROM Usuario");
     return rows;

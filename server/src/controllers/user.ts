@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { database } from "../database";
-import { User } from "../models/User";
 import { UserService } from "../services/user";
 import { CreateUserDTO } from "../utils/dtos";
+import { User } from "../models";
 
 const userService = new UserService();
 

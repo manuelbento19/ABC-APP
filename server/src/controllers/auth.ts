@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { LoginDTO } from "../utils/dtos";
-import { AuthService } from "../services/auth";
+import { AuthService, UserService } from "../services";
+import { TokenManager } from "../utils/helper/Token";
 
-const authService = new AuthService();
+const tokenManager = new TokenManager();
+const userService = new UserService();
+const authService = new AuthService(userService,tokenManager);
 
 export async function login(req: Request, res: Response) {
   const body: LoginDTO = req.body;
