@@ -6,4 +6,6 @@ export type Empresa = {
     nif: string;
     proprietario_id: number;
     created_at?: Date;
-} & RowDataPacket;
+};
+
+export type EmpresaResult = Empresa & RowDataPacket;

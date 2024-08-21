@@ -1,2 +1,2 @@
-export {Empresa} from './Empresa';
-export {User} from './User';
+export {Empresa,EmpresaResult} from './Empresa';
+export {User,UserResult,Role} from './User';

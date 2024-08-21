@@ -1,6 +1,6 @@
 import { RowDataPacket } from "mysql2";
 
-enum Role  {
+export enum Role  {
     Usuario,
     Empreendedor,
     Admin
@@ -16,6 +16,8 @@ export type User = {
     telefone: string;
     bi?: string;
     areaAtuacao?: string;
-    role?: Role;
+    role: Role;
     created_at?: Date;
-} & RowDataPacket;
+};
+
+export type UserResult = User & RowDataPacket;

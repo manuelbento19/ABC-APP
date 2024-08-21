@@ -1,4 +1,5 @@
 import { LoginDTO } from "../utils/dtos";
+import { AppError } from "../utils/helper/AppError";
 import { TokenManager } from "../utils/helper/Token";
 import { UserService } from "./user";
 
@@ -12,10 +13,10 @@ export class AuthService {
     const userExists = await this.userService.getByEmail(data.email);
 
     if(!userExists)
-    throw new Error("E-mail ou password incorrectas");
+    throw new AppError("E-mail ou password incorrectas");
 
     if(userExists.password!==data.password)
-    throw new Error("E-mail ou password incorrectas");
+    throw new AppError("E-mail ou password incorrectas");
 
     const token = this.tokenManager.generate(JSON.stringify({ userId: userExists.id }));
     return {
@@ -30,7 +31,7 @@ export class AuthService {
   
     const userExists = await this.userService.getById(decoded.id);
     if(!userExists)
-    throw new Error("Usuário não existe");
+    throw new AppError("Usuário não existe");
     
     return userExists;
   }

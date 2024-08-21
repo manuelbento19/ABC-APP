@@ -1,37 +1,53 @@
-import { database } from "../database";
-import { User } from "../models";
+import { UserRepository } from "../repositories/user";
 import { CreateUserDTO } from "../utils/dtos";
-import { QueryBuilder } from "../utils/helper/QueryBuilder";
+import { AppError } from "../utils/helper/AppError";
 
 export class UserService {
+
+  constructor(private userRepository: UserRepository){}
+
   async create(data: CreateUserDTO) {
-    const query = QueryBuilder.toCreate(data);
-    const [rows] = await database.query<User[]>(`INSERT INTO Usuario (${query.columns}) VALUES (${query.signals})`,[query.values]);
-    return rows
+    const userExists = await this.getByEmail(data.email);
+    if(userExists)
+    throw new AppError("Usuário já existe na App");
+
+    const result = await this.userRepository.create(data);
+    return result;
   }
 
   async getById(id: number) {
-    const [rows] = await database.query<User[]>("SELECT * FROM Usuario WHERE id = ?", [id]);
-    return rows[0];
+    const userExists = await this.userRepository.getById(id);
+    if(!userExists)
+    throw new AppError("Usuário não existe",404);
+    return userExists;
   }
 
   async getByEmail(email: string){
-    const [rows] = await database.query<User[]>("SELECT * FROM Usuario WHERE email = ?",[email])
-    return rows[0];
-
+    const user = await this.userRepository.getByEmail(email);
+    if(!user)
+    throw new AppError("Usuário não existe",404);
+    return user;
   }
   async getAll() {
-    const [rows] = await database.query<User[]>("SELECT * FROM Usuario");
-    return rows;
+    const result = await this.userRepository.getAll();
+    return result;
   }
 
   async delete(id: number) {
-    const [result] = await database.query<User[]>('DELETE FROM Usuario WHERE id = ?', [id]);
+    const userExists = await this.getById(id);
+    if(!userExists)
+    throw new AppError("Usuário não existe",404);
+
+    const result = await this.userRepository.delete(id);
     return result;
   }
+
   async update(id: number,data: CreateUserDTO) {
-    const query = QueryBuilder.toUpdate(data);
-    const [rows] = await database.query<User[]>(`UPDATE Usuario SET ${query.columns} WHERE id=${id}`,[query.values]);
-    return rows;
+    const userExists = await this.getById(id);
+    if(!userExists)
+    throw new AppError("Usuário não existe",404);
+
+    const result = await this.userRepository.update(id,data);
+    return result;
   }
 }
