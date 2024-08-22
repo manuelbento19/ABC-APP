@@ -7,7 +7,7 @@ export const configuration = {
     },
     database: {
         host: "localhost",
-        user: "root",
+        user: "resolve",
         password: "resolve",
         database: "abc_app",
     }

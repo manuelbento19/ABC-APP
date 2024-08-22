@@ -18,6 +18,7 @@ export type User = {
     areaAtuacao?: string;
     role: Role;
     created_at?: Date;
+    updated_at?: Date;
 };
 
 export type UserResult = User & RowDataPacket;

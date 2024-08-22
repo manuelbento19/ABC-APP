@@ -5,6 +5,8 @@ services:
     build: ./docker/mysql
     restart: always
     environment:
+      - MYSQL_USER=resolve
+      - MYSQL_PASSWORD=resolve
       - MYSQL_ROOT_PASSWORD=resolve
       - MYSQL_DATABASE=abc_app
     volumes:
